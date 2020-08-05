@@ -208,7 +208,8 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 # e6 Nf6 Nc6 axb2 losing position
 # r2q1rk1/pp1n1ppp/2pbpn2/3p4/6b1/1P1P1NP1/PBPNPPBP/R2Q1RK1 w - - 3 9
 # h3 e4 c4 Re1
-
+# r1bq1rk1/2p1bpp1/p1np1n1p/1p2p3/3PP3/1BP2N1P/PP3PP1/RNBQR1K1 b - - 0 10
+# Re8 Bb7 Bd7 Na5
 # Streamlit
 st.title('MCTS Chess Dashboard')
 fen = st.text_input(
