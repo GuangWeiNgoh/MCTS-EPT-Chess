@@ -168,6 +168,9 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
          'score': score_list,
          })
 
+    move_stats_list.sort_values(by=['score'], inplace=True, ascending=False)
+    # move_stats_list.sort_values(by=['score'], ascending=False)
+
     fig = px.bar(move_stats_list, x='move', y='score',
                  hover_data=['move', 'score'], color='score',
                  labels={'move': 'Move Played', 'score': 'Win Percentage (%)'}, height=400, width=800)
@@ -211,20 +214,20 @@ try:
 except:
     st.write('Invalid Fen')
 
-# Evalutate score using stockfish evaluation
-# engine = chess.uci.popen_engine("stockfish.exe")
-engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
-print("\n")
-print(datetime.datetime.utcnow())
-# info = engine.analyse(board, chess.engine.Limit(time=0.1))
-info = engine.analyse(board, chess.engine.Limit(depth=20), multipv=4)
-# print("Score:", info["score"])
-print(board.san(info[0]["pv"][0]))
-print(board.san(info[1]["pv"][0]))
-print(board.san(info[2]["pv"][0]))
-print(board.san(info[3]["pv"][0]))
-print(datetime.datetime.utcnow())
-engine.quit()  # Exit stockfish engine
+# # Evalutate score using stockfish evaluation
+# # engine = chess.uci.popen_engine("stockfish.exe")
+# engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
+# print("\n")
+# print(datetime.datetime.utcnow())
+# # info = engine.analyse(board, chess.engine.Limit(time=0.1))
+# info = engine.analyse(board, chess.engine.Limit(depth=20), multipv=4)
+# # print("Score:", info["score"])
+# print(board.san(info[0]["pv"][0]))
+# print(board.san(info[1]["pv"][0]))
+# print(board.san(info[2]["pv"][0]))
+# print(board.san(info[3]["pv"][0]))
+# print(datetime.datetime.utcnow())
+# engine.quit()  # Exit stockfish engine
 
 print("\n")
 if board.turn:
@@ -242,7 +245,7 @@ max_moves = st.sidebar.slider(
     'Maximum moves per simulation (MCTS)', 0, 1000, 500)
 st.sidebar.subheader("MCTS-EPT")
 ept_root_c_value = st.sidebar.number_input(
-    'UCT exploration constant @ root', 1.4, key='ept_root_c_value')
+    'UCT exploration constant @ root', 3, key='ept_root_c_value')
 ept_c_value = st.sidebar.number_input(
     'UCT exploration constant', 1.4, key='ept_c_value')
 terminal_depth = st.sidebar.slider(
