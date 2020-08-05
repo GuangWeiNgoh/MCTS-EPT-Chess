@@ -47,6 +47,7 @@ class MCTSEPT(object):
         print("Playout terminal depth: " + str(self.terminal_depth))
         print("\n")
         self.C = kwargs.get('C', 1.4)  # UCT exploration constant
+        self.root_C = kwargs.get('root_C', 8.4)
         self.engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
 
     # **********************************************************************************************************************
