@@ -47,17 +47,17 @@ from PIL import Image
 # chess.svg.board(board=board, squares=squares)
 
 
-class MyGameBuilder(chess.pgn.GameBuilder):
-    def handle_error(self, error):
-        pass  # Ignore error
+# class MyGameBuilder(chess.pgn.GameBuilder):
+#     def handle_error(self, error):
+#         pass  # Ignore error
 
 
-# Open PGN data file
-pgn = open("./data/pgn/kasparov-deep-blue-1997.pgn")
-game = chess.pgn.read_game(pgn, Visitor=MyGameBuilder)
+# # Open PGN data file
+# pgn = open("./data/pgn/kasparov-deep-blue-1997.pgn")
+# game = chess.pgn.read_game(pgn, Visitor=MyGameBuilder)
 
-# game = chess.pgn.Game()
-print(game.headers)
+# # game = chess.pgn.Game()
+# print(game.headers)
 
 # while not board.is_game_over():
 #     result = engine.play(board, chess.engine.Limit(time=0.1))
@@ -200,7 +200,7 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 # Streamlit
 st.title('MCTS Chess Dashboard')
 fen = st.text_input(
-    'Input FEN', 'r1bqkbnr/p1pp1ppp/1pn5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4')
+    'Input FEN', 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
 try:
     board = chess.Board(fen)
     # board.push_san("Qxf7")
@@ -211,18 +211,20 @@ try:
 except:
     st.write('Invalid Fen')
 
-# # Evalutate score using stockfish evaluation
-# # engine = chess.uci.popen_engine("stockfish.exe")
-# engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
-# print("\n")
-# print(datetime.datetime.utcnow())
+# Evalutate score using stockfish evaluation
+# engine = chess.uci.popen_engine("stockfish.exe")
+engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
+print("\n")
+print(datetime.datetime.utcnow())
 # info = engine.analyse(board, chess.engine.Limit(time=0.1))
-# # info = engine.analyse(board, chess.engine.Limit(depth=20))
+info = engine.analyse(board, chess.engine.Limit(depth=20), multipv=4)
 # print("Score:", info["score"])
-# print(info)
-# print("\n")
-# print(datetime.datetime.utcnow())
-# engine.quit()  # Exit stockfish engine
+print(board.san(info[0]["pv"][0]))
+print(board.san(info[1]["pv"][0]))
+print(board.san(info[2]["pv"][0]))
+print(board.san(info[3]["pv"][0]))
+print(datetime.datetime.utcnow())
+engine.quit()  # Exit stockfish engine
 
 print("\n")
 if board.turn:
@@ -240,7 +242,7 @@ max_moves = st.sidebar.slider(
     'Maximum moves per simulation (MCTS)', 0, 1000, 500)
 st.sidebar.subheader("MCTS-EPT")
 ept_root_c_value = st.sidebar.number_input(
-    'UCT exploration constant @ root', 8.4, key='ept_root_c_value')
+    'UCT exploration constant @ root', 1.4, key='ept_root_c_value')
 ept_c_value = st.sidebar.number_input(
     'UCT exploration constant', 1.4, key='ept_c_value')
 terminal_depth = st.sidebar.slider(
