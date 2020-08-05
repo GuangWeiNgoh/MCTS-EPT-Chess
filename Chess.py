@@ -125,9 +125,10 @@ def run_mcts(board, calc_time, max_moves, c_value):
     return best_move, weight_list, winsim_list, score_list, total_wins, total_sims
 
 
-def run_mcts_ept(board, calc_time, max_moves, c_value):
+def run_mcts_ept(board, calc_time, terminal_depth, c_value):
     st.write('EPT Ran')
-    simulation = MCTSEPT(board, time=calc_time, max_moves=max_moves, C=c_value)
+    simulation = MCTSEPT(board, time=calc_time,
+                         terminal_depth=terminal_depth, C=c_value)
     # initialize root node with children at depth 1
     root_node = simulation.mcts_ept_init()
     if board.turn:
@@ -224,9 +225,14 @@ print(info)
 # print(chess.engine.Score)
 # print(chess.engine.PovScore(info["score"], False))
 print(datetime.datetime.utcnow())
-print(info["score"].white())
 print(info["score"].black())
 print(info["score"].is_mate())
+# print(int(info["score"].white().__str__()))
+# print(int(info["score"].black().__str__()))
+print(info["score"].white().__str__())
+print(info["score"].black().__str__())
+pov_score = info["score"].white().__str__()
+print(pov_score[1])
 # print(board.turn)
 engine.quit()  # Exit stockfish engine
 
@@ -234,7 +240,10 @@ st.sidebar.title("Parameters")
 st.sidebar.text("")
 calc_time = st.sidebar.number_input('Calculation time (seconds)', 10)
 c_value = st.sidebar.number_input('UCT exploration constant', 1.4)
-max_moves = st.sidebar.slider('Maximum moves per simulation', 0, 1000, 500)
+max_moves = st.sidebar.slider(
+    'Maximum moves per simulation (MCTS)', 0, 1000, 500)
+terminal_depth = st.sidebar.slider(
+    'Playout terminal depth (MCTS-EPT)', 0, 50, 5)
 
 st.text("")
 algo = st.radio("Select Algorithm", ('MCTS', 'MCTS-EPT'))
@@ -246,7 +255,7 @@ if st.button('Run'):
             board, calc_time, max_moves, c_value)
     elif algo == 'MCTS-EPT':
         best_move, weight_list, winsim_list, score_list, total_wins, total_sims = run_mcts_ept(
-            board, calc_time, max_moves, c_value)
+            board, calc_time, terminal_depth, c_value)
     else:
         st.write('No algorithm selected')
     show_stats(best_move, weight_list, winsim_list,

@@ -43,8 +43,8 @@ class MCTSEPT(object):
         self.calc_time = datetime.timedelta(seconds=seconds)
         print("Calculation time: " + str(self.calc_time))
         print("\n")
-        self.max_moves = kwargs.get('max_moves', 100)
-        print("Maximum moves: " + str(self.max_moves))
+        self.terminal_depth = kwargs.get('terminal_depth', 5)
+        print("Playout terminal depth: " + str(self.terminal_depth))
         print("\n")
         self.C = kwargs.get('C', 1.4)  # UCT exploration constant
         self.engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
@@ -150,31 +150,45 @@ class MCTSEPT(object):
     def run_simulation(self, node, original_player):
         # convert fen string back to board object
         board_state = chess.Board(node.state)
-        for move in range(self.max_moves):
+        for move in range(self.terminal_depth):
 
             board_state.push(random.choice(list(board_state.legal_moves)))
 
-            # winner = "UNKNOWN"
-            # if board_state.is_game_over():
+            if board_state.is_game_over():
 
-            #     if board_state.is_checkmate():  # assign winner only if checkmate
-            #         if board_state.turn:
-            #             winner = "BLACK"
-            #         else:
-            #             winner = "WHITE"
-
-            #         if winner == original_player:  # if winner is the original player, return true
-            #             return True
-            #         else:
-            #             return False
-            #     break
+                if board_state.is_checkmate():  # assign winner only if checkmate
+                    if board_state.turn == original_player:
+                        return False
+                    else:
+                        return True
+                break
         info = self.engine.analyse(board_state, chess.engine.Limit(time=0.1))
         if original_player:
-            print(info["score"].white())
+            try:
+                pov_score = int(info["score"].white().__str__())
+                if pov_score > 0:
+                    return True
+                else:
+                    return False
+            except:
+                pov_score = info["score"].white().__str__()
+                if pov_score[1] == '+':
+                    return True
+                else:
+                    return False
         else:
-            print(info["score"].black())
-        # check for checkmate
-        return False
+            try:
+                pov_score = int(info["score"].black().__str__())
+                if pov_score > 0:
+                    return True
+                else:
+                    return False
+            except:
+                pov_score = info["score"].black().__str__()
+                if pov_score[1] == '+':
+                    return True
+                else:
+                    return False
 
     # **********************************************************************************************************************
 
@@ -263,6 +277,7 @@ class MCTSEPT(object):
     # **********************************************************************************************************************
 
     def mcts_ept_render(self):
+        self.engine.quit()
         print("\n")
         for pre, _, node in RenderTree(globals()[str(self.starting_board_state.fen())+str(0)]):
             treestr = u"%s%s" % (pre, node.weight)
