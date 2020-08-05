@@ -174,7 +174,7 @@ class MCTSEPT(object):
                         return True
                 return False
                 # break
-        info = self.engine.analyse(board_state, chess.engine.Limit(time=0.1))
+        info = self.engine.analyse(board_state, chess.engine.Limit(time=0.01))
         if original_player:
             try:
                 pov_score = int(info["score"].white().__str__())
@@ -290,17 +290,17 @@ class MCTSEPT(object):
 
     def mcts_ept_render(self):
         self.engine.quit()
-        print("\n")
-        for pre, _, node in RenderTree(globals()[str(self.starting_board_state.fen())+str(0)]):
-            treestr = u"%s%s" % (pre, node.weight)
-            print(treestr.ljust(8), node.wins, node.sims, node.score)
-        print("\n")
+        # print("\n")
+        # for pre, _, node in RenderTree(globals()[str(self.starting_board_state.fen())+str(0)]):
+        #     treestr = u"%s%s" % (pre, node.weight)
+        #     print(treestr.ljust(8), node.wins, node.sims, node.score)
+        # print("\n")
 
-        print("Total Wins/Simulations: " + str(globals()
-                                               [str(self.starting_board_state.fen())+str(0)].wins) + "/" + str(globals()[str(self.starting_board_state.fen())+str(0)].sims))
-        print("Total Win Rate: " +
-              str(round(globals()[str(self.starting_board_state.fen())+str(0)].score*100, 2)) + "%")
-        print("\n")
+        # print("Total Wins/Simulations: " + str(globals()
+        #                                        [str(self.starting_board_state.fen())+str(0)].wins) + "/" + str(globals()[str(self.starting_board_state.fen())+str(0)].sims))
+        # print("Total Win Rate: " +
+        #       str(round(globals()[str(self.starting_board_state.fen())+str(0)].score*100, 2)) + "%")
+        # print("\n")
 
         weight_list = []
         winsim_list = []
@@ -316,6 +316,7 @@ class MCTSEPT(object):
             if child.score > best_score:
                 best_score = child.score
                 best_move = child.weight
+
         print("\n")
         print("Best Move: " + str(best_move))
         print("\n")
