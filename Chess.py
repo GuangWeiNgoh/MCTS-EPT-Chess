@@ -211,30 +211,24 @@ try:
 except:
     st.write('Invalid Fen')
 
-# Evalutate score using stockfish evaluation
-# engine = chess.uci.popen_engine("stockfish.exe")
-engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
+# # Evalutate score using stockfish evaluation
+# # engine = chess.uci.popen_engine("stockfish.exe")
+# engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
+# print("\n")
+# print(datetime.datetime.utcnow())
+# info = engine.analyse(board, chess.engine.Limit(time=0.1))
+# # info = engine.analyse(board, chess.engine.Limit(depth=20))
+# print("Score:", info["score"])
+# print(info)
+# print("\n")
+# print(datetime.datetime.utcnow())
+# engine.quit()  # Exit stockfish engine
+
 print("\n")
-print(datetime.datetime.utcnow())
-info = engine.analyse(board, chess.engine.Limit(time=0.1))
-# info = engine.analyse(board, chess.engine.Limit(depth=20))
-print("Score:", info["score"])
-# print(info.get("score"), info.get("pv"))
-print(info)
-# print(chess.engine.white(info["score"]))
-# print(chess.engine.Score)
-# print(chess.engine.PovScore(info["score"], False))
-print(datetime.datetime.utcnow())
-print(info["score"].black())
-print(info["score"].is_mate())
-# print(int(info["score"].white().__str__()))
-# print(int(info["score"].black().__str__()))
-print(info["score"].white().__str__())
-print(info["score"].black().__str__())
-pov_score = info["score"].white().__str__()
-print(pov_score[1])
-# print(board.turn)
-engine.quit()  # Exit stockfish engine
+if board.turn:
+    print('Original player: WHITE')
+else:
+    print('Original player: BLACK')
 
 st.sidebar.title("Parameters")
 st.sidebar.text("")

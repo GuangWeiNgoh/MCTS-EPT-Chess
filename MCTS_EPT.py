@@ -35,7 +35,7 @@ class MCTSEPT(object):
         # statistics tables.
         # pass
         print("\n")
-        print("******* MCTS Object Created *******")
+        print("******* MCTS-EPT Object Created *******")
         print("\n")
         self.starting_board_state = board.copy()
         seconds = kwargs.get('time', 30)  # default set at 30 seconds
@@ -152,16 +152,21 @@ class MCTSEPT(object):
         board_state = chess.Board(node.state)
         for move in range(self.terminal_depth):
 
-            board_state.push(random.choice(list(board_state.legal_moves)))
+            # board_state.push(random.choice(list(board_state.legal_moves)))
+            try:
+                board_state.push(random.choice(list(board_state.legal_moves)))
+            except:
+                print(board_state)
 
             if board_state.is_game_over():
 
                 if board_state.is_checkmate():  # assign winner only if checkmate
                     if board_state.turn == original_player:
-                        return False
+                        return False  # is draw considered a loss for mcts-ept?
                     else:
                         return True
-                break
+                return False
+                # break
         info = self.engine.analyse(board_state, chess.engine.Limit(time=0.1))
         if original_player:
             try:
