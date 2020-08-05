@@ -59,10 +59,6 @@ game = chess.pgn.read_game(pgn, Visitor=MyGameBuilder)
 # game = chess.pgn.Game()
 print(game.headers)
 
-# board = chess.Board()
-# board = chess.Board(
-#     "r1bqkbnr/p1pp1ppp/1pn5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4")
-
 # while not board.is_game_over():
 #     result = engine.play(board, chess.engine.Limit(time=0.1))
 #     board.push(result.move)
@@ -199,6 +195,7 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 # rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 # r1bqkbnr/p1pp1ppp/1pn5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4
 # rnb1kbn1/2Bppp2/1p4p1/2P5/2BPP2p/p4N1P/PP3PP1/R2QK2R b KQq - 0 13
+
 # Streamlit
 st.title('MCTS Chess Dashboard')
 fen = st.text_input(
