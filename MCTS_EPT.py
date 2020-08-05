@@ -100,7 +100,11 @@ class MCTSEPT(object):
         # else select child that maximizes UCB1
         # while (node.children):  # traverse down until no children left (leaf node)
         while not(node.is_leaf):
-            # node = node.children[0]
+            if node.depth == 0:  # use root_C for selection from root node
+                c_value = self.root_C
+            else:
+                c_value = self.C
+
             if node.sims == 0:  # only for root node
                 node = node.children[0]
             else:
@@ -108,15 +112,17 @@ class MCTSEPT(object):
                 uct_score = -math.inf
                 log_value = log(node.sims)
                 for each in node.children:
+                    # print(c_value)
                     if each.sims == 0:
                         uct_score = math.inf
                     else:
-                        uct_score = ((each.score) + (self.C *
+                        uct_score = ((each.score) + (c_value *
                                                      sqrt(log_value/each.sims)))
+                        # uct_score = ((each.score) + (self.C *
+                        #                              sqrt(log_value/each.sims)))
                     if uct_score > max_uct:
                         max_uct = uct_score
                         node = each
-
         return node
 
     # **********************************************************************************************************************
