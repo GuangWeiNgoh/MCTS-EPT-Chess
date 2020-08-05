@@ -125,10 +125,10 @@ def run_mcts(board, calc_time, max_moves, c_value):
     return best_move, weight_list, winsim_list, score_list, total_wins, total_sims
 
 
-def run_mcts_ept(board, calc_time, terminal_depth, c_value):
+def run_mcts_ept(board, calc_time, terminal_depth, ept_c_value, ept_root_c_value):
     st.write('EPT Ran')
     simulation = MCTSEPT(board, time=calc_time,
-                         terminal_depth=terminal_depth, C=c_value)
+                         terminal_depth=terminal_depth, C=ept_c_value, root_C=ept_root_c_value)
     # initialize root node with children at depth 1
     root_node = simulation.mcts_ept_init()
     if board.turn:
@@ -233,9 +233,16 @@ else:
 st.sidebar.title("Parameters")
 st.sidebar.text("")
 calc_time = st.sidebar.number_input('Calculation time (seconds)', 10)
-c_value = st.sidebar.number_input('UCT exploration constant', 1.4)
+st.sidebar.subheader("MCTS")
+c_value = st.sidebar.number_input(
+    'UCT exploration constant', 1.4, key='c_value')
 max_moves = st.sidebar.slider(
     'Maximum moves per simulation (MCTS)', 0, 1000, 500)
+st.sidebar.subheader("MCTS-EPT")
+ept_root_c_value = st.sidebar.number_input(
+    'UCT exploration constant @ root', 8.4, key='ept_root_c_value')
+ept_c_value = st.sidebar.number_input(
+    'UCT exploration constant', 1.4, key='ept_c_value')
 terminal_depth = st.sidebar.slider(
     'Playout terminal depth (MCTS-EPT)', 0, 50, 5)
 
@@ -249,7 +256,7 @@ if st.button('Run'):
             board, calc_time, max_moves, c_value)
     elif algo == 'MCTS-EPT':
         best_move, weight_list, winsim_list, score_list, total_wins, total_sims = run_mcts_ept(
-            board, calc_time, terminal_depth, c_value)
+            board, calc_time, terminal_depth, ept_c_value, ept_root_c_value)
     else:
         st.write('No algorithm selected')
     show_stats(best_move, weight_list, winsim_list,
