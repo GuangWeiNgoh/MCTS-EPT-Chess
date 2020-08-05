@@ -152,19 +152,25 @@ def run_mcts_ept(board, calc_time, terminal_depth, ept_c_value, ept_root_c_value
     return best_move, weight_list, winsim_list, score_list, total_wins, total_sims
 
 
-def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, total_sims):
+def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, total_sims, algo):
     st.header('Move Statistics')
     st.subheader('Total Wins/Simulations: ' +
                  str(total_wins) + '/' + str(total_sims))
     # st.subheader('Total Win Rate: ' +
     #              str(round(total_wins/total_sims*100, 2)) + '%')
 
-    dot_graph = pydotplus.graphviz.graph_from_dot_file('./tree.dot')
-    dot_graph.write_png("tree.png")
+    # dot_graph = pydotplus.graphviz.graph_from_dot_file('./tree.dot')
+    # dot_graph.write_png("tree.png")
+    if algo == 'MCTS':
+        plot_label = 'Win Percentage (%)'
+        df_label = 'win/sim'
+    else:
+        plot_label = 'Advantage Percentage (%)'
+        df_label = 'adv/sim'
 
     move_stats_list = pd.DataFrame(
         {'move': weight_list,
-         'win/sim': winsim_list,
+         df_label: winsim_list,
          'score': score_list,
          })
 
@@ -173,7 +179,7 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 
     fig = px.bar(move_stats_list, x='move', y='score',
                  hover_data=['move', 'score'], color='score',
-                 labels={'move': 'Move Played', 'score': 'Win Percentage (%)'}, height=400, width=800)
+                 labels={'move': 'Move Played', 'score': plot_label}, height=400, width=800)
     st.plotly_chart(fig, use_container_width=True)
 
     st.subheader('Best Move: ' + str(best_move))
@@ -199,6 +205,9 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 # rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 # r1bqkbnr/p1pp1ppp/1pn5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4
 # rnb1kbn1/2Bppp2/1p4p1/2P5/2BPP2p/p4N1P/PP3PP1/R2QK2R b KQq - 0 13
+# e6 Nf6 Nc6 axb2 losing position
+# r2q1rk1/pp1n1ppp/2pbpn2/3p4/6b1/1P1P1NP1/PBPNPPBP/R2Q1RK1 w - - 3 9
+# h3 e4 c4 Re1
 
 # Streamlit
 st.title('MCTS Chess Dashboard')
@@ -265,4 +274,4 @@ if st.button('Run'):
     else:
         st.write('No algorithm selected')
     show_stats(best_move, weight_list, winsim_list,
-               score_list, total_wins, total_sims)
+               score_list, total_wins, total_sims, algo)
