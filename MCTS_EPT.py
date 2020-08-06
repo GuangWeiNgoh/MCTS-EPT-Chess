@@ -289,7 +289,8 @@ class MCTSEPT(object):
     # **********************************************************************************************************************
 
     def algo_render(self):
-        self.engine.quit()
+        # self.engine.quit()
+
         # print("\n")
         # for pre, _, node in RenderTree(globals()[str(self.starting_board_state.fen())+str(0)]):
         #     treestr = u"%s%s" % (pre, node.weight)
