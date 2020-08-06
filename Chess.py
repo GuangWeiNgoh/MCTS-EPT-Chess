@@ -40,6 +40,7 @@ from MCTS import MCTS
 from MCTS_EPT import MCTSEPT
 from graphviz import Source
 from PIL import Image
+from Playout import Playout
 # from streamlit.ReportThread import add_report_ctx
 
 
@@ -124,39 +125,9 @@ def animate_board():
         count += 1
 
 
-def run_mcts(board, calc_time, max_moves, c_value):
-    simulation = MCTS(board, time=calc_time, max_moves=max_moves, C=c_value)
+def run_algo(simulation, calc_time):
     # initialize root node with children at depth 1
-    root_node = simulation.mcts_init()
-    if board.turn:
-        player = True
-    else:
-        player = False
-
-    calc_time = datetime.timedelta(seconds=calc_time)
-    st.write('Calculation time: ' + str(calc_time))
-    timer_status = st.empty()
-    # interval = datetime.timedelta(seconds=1)
-    # multiplier = 0
-    start_time = datetime.datetime.utcnow()  # current time
-    while datetime.datetime.utcnow() - start_time < calc_time:  # run simulation until allowed time is reached
-        # if datetime.datetime.utcnow() - start_time + multiplier*interval >= interval:
-        #****TIMER SLOWS DOWN PROGRAM, REMOVE LINE BELOW TO OPTIMIZE****#
-        timer_status.text(datetime.datetime.utcnow() - start_time)
-        end_sim = simulation.mcts(root_node, player)
-        if end_sim:
-            break
-    timer_status.text('Done!')
-    best_move, weight_list, winsim_list, score_list, total_wins, total_sims = simulation.mcts_render()
-    return best_move, weight_list, winsim_list, score_list, total_wins, total_sims
-
-
-def run_mcts_ept(board, calc_time, terminal_depth, ept_c_value, ept_root_c_value):
-    st.write('EPT Ran')
-    simulation = MCTSEPT(board, time=calc_time,
-                         terminal_depth=terminal_depth, C=ept_c_value, root_C=ept_root_c_value)
-    # initialize root node with children at depth 1
-    root_node = simulation.mcts_ept_init()
+    root_node = simulation.algo_init()
     if board.turn:
         player = True
     else:
@@ -170,11 +141,11 @@ def run_mcts_ept(board, calc_time, terminal_depth, ept_c_value, ept_root_c_value
         # if datetime.datetime.utcnow() - start_time + multiplier*interval >= interval:
         #****TIMER SLOWS DOWN PROGRAM, REMOVE LINE BELOW TO OPTIMIZE****#
         timer_status.text(datetime.datetime.utcnow() - start_time)
-        end_sim = simulation.mctsept(root_node, player)
+        end_sim = simulation.algo(root_node, player)
         if end_sim:
             break
     timer_status.text('Done!')
-    best_move, weight_list, winsim_list, score_list, total_wins, total_sims = simulation.mcts_ept_render()
+    best_move, weight_list, winsim_list, score_list, total_wins, total_sims = simulation.algo_render()
     return best_move, weight_list, winsim_list, score_list, total_wins, total_sims
 
 
@@ -293,11 +264,15 @@ algo = st.radio("Select Algorithm", ('MCTS', 'MCTS-EPT'))
 # Call algo on button click
 if st.button('Generate move'):
     if algo == 'MCTS':
-        best_move, weight_list, winsim_list, score_list, total_wins, total_sims = run_mcts(
-            board, calc_time, max_moves, c_value)
+        simulation = MCTS(board, time=calc_time,
+                          max_moves=max_moves, C=c_value)
+        best_move, weight_list, winsim_list, score_list, total_wins, total_sims = run_algo(
+            simulation, calc_time)
     elif algo == 'MCTS-EPT':
-        best_move, weight_list, winsim_list, score_list, total_wins, total_sims = run_mcts_ept(
-            board, calc_time, terminal_depth, ept_c_value, ept_root_c_value)
+        simulation = MCTSEPT(board, time=calc_time,
+                             terminal_depth=terminal_depth, C=ept_c_value, root_C=ept_root_c_value)
+        best_move, weight_list, winsim_list, score_list, total_wins, total_sims = run_algo(
+            simulation, calc_time)
     else:
         st.write('No algorithm selected')
     show_stats(best_move, weight_list, winsim_list,
@@ -312,4 +287,17 @@ opponent_depth = st.slider(
     'Stockfish seach depth', 0, 30, 10, key='engine_depth')
 
 if st.button('Start playout'):
-    animate_board()
+    # animate_board()
+    if algo == 'MCTS':
+        mcts = MCTS(board, time=calc_time,
+                    max_moves=max_moves, C=c_value)
+        playout = Playout(board, num_games, opponent_depth, mcts)
+        playout.run_playout()
+
+    elif algo == 'MCTS-EPT':
+        mctsept = MCTSEPT(board, time=calc_time,
+                          terminal_depth=terminal_depth, C=ept_c_value, root_C=ept_root_c_value)
+        playout = Playout(board, num_games, opponent_depth, mctsept)
+
+    else:
+        st.write('No algorithm selected')
