@@ -10,6 +10,7 @@ import sys
 # pip install plotly==4.9.0
 # pip install graphviz
 # pip install pydotplus
+# pip install cairosvg
 
 import asyncio
 import chess
@@ -29,6 +30,7 @@ import time
 import datetime
 import json
 import base64  # svg
+import cairosvg  # svg to png to animate board
 # import concurrent.futures
 # import threading
 import random
@@ -94,8 +96,32 @@ from PIL import Image
 def render_svg(svg):
     """Renders the given svg string."""
     b64 = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
-    html = r'<img src="data:image/svg+xml;base64,%s" width="400" height="400"/>' % b64
-    st.write(html, unsafe_allow_html=True)
+    html = r'<img id="boardsvg" src="data:image/svg+xml;base64,%s" width="400" height="400"/>' % b64
+    # boardsvg.write(html, unsafe_allow_html=True)
+    st.write(html, unsafe_allow_html=True, key='boardsvg')
+
+
+def animate_board():
+    boardholder = st.empty()
+    count = 0
+    while(1):
+        if count % 2 == 0:
+            board = chess.Board(
+                'r2q1rk1/pp1n1ppp/2pbpn2/3p4/6b1/1P1P1NP1/PBPNPPBP/R2Q1RK1 w - - 3 9')
+            board_svg = chess.svg.board(board=board)
+            cairosvg.svg2png(board_svg, write_to="board.png")
+            boardimg = Image.open('board.png')
+            time.sleep(0.5)
+            boardholder.image(boardimg)
+        else:
+            board = chess.Board(
+                'r1bq1rk1/2p1bpp1/p1np1n1p/1p2p3/3PP3/1BP2N1P/PP3PP1/RNBQR1K1 b - - 0 10')
+            board_svg = chess.svg.board(board=board)
+            cairosvg.svg2png(board_svg, write_to="board.png")
+            boardimg = Image.open('board.png')
+            time.sleep(0.5)
+            boardholder.image(boardimg)
+        count += 1
 
 
 def run_mcts(board, calc_time, max_moves, c_value):
@@ -220,12 +246,13 @@ try:
     # board.push_san("e4")
     # board.push_san("e5")
     # board.push(random.choice(list(board.legal_moves)))
-    render_svg(chess.svg.board(board=board))
+    board_svg = chess.svg.board(board=board)
+    render_svg(board_svg)
 except:
     st.write('Invalid Fen')
 
+
 # # Evalutate score using stockfish evaluation
-# # engine = chess.uci.popen_engine("stockfish.exe")
 # engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
 # print("\n")
 # print(datetime.datetime.utcnow())
@@ -265,7 +292,7 @@ st.text("")
 algo = st.radio("Select Algorithm", ('MCTS', 'MCTS-EPT'))
 
 # Call algo on button click
-if st.button('Run'):
+if st.button('Generate move'):
     if algo == 'MCTS':
         best_move, weight_list, winsim_list, score_list, total_wins, total_sims = run_mcts(
             board, calc_time, max_moves, c_value)
@@ -276,3 +303,8 @@ if st.button('Run'):
         st.write('No algorithm selected')
     show_stats(best_move, weight_list, winsim_list,
                score_list, total_wins, total_sims, algo)
+
+engine_depth = st.slider(
+    'Opponent seach depth', 0, 30, 10, key='engine_depth')
+
+animate_board()
