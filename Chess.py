@@ -236,6 +236,7 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 # h3 e4 c4 Re1
 # r1bq1rk1/2p1bpp1/p1np1n1p/1p2p3/3PP3/1BP2N1P/PP3PP1/RNBQR1K1 b - - 0 10
 # Re8 Bb7 Bd7 Na5
+
 # Streamlit
 st.title('MCTS Chess Dashboard')
 fen = st.text_input(
@@ -246,6 +247,10 @@ try:
     # board.push_san("e4")
     # board.push_san("e5")
     # board.push(random.choice(list(board.legal_moves)))
+    if board.turn:
+        st.text('WHITE to play')
+    else:
+        st.text('BLACK to play')
     board_svg = chess.svg.board(board=board)
     render_svg(board_svg)
 except:
@@ -265,12 +270,6 @@ except:
 # print(board.san(info[3]["pv"][0]))
 # print(datetime.datetime.utcnow())
 # engine.quit()  # Exit stockfish engine
-
-print("\n")
-if board.turn:
-    print('Original player: WHITE')
-else:
-    print('Original player: BLACK')
 
 st.sidebar.title("Parameters")
 st.sidebar.text("")
@@ -304,7 +303,13 @@ if st.button('Generate move'):
     show_stats(best_move, weight_list, winsim_list,
                score_list, total_wins, total_sims, algo)
 
-engine_depth = st.slider(
-    'Opponent seach depth', 0, 30, 10, key='engine_depth')
+st.header('Playout vs Stockfish')
 
-animate_board()
+num_games = st.number_input(
+    'Number of games', 1, key='num_games')
+
+opponent_depth = st.slider(
+    'Stockfish seach depth', 0, 30, 10, key='engine_depth')
+
+if st.button('Start playout'):
+    animate_board()
