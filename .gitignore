@@ -6,5 +6,9 @@ Lib
 Scripts
 share
 LICENSE
+Chess(Async).py
+test.json
 tree.json
+tree.png
+tree.dot
 board.png
