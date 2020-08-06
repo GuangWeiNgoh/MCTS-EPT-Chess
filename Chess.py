@@ -190,10 +190,10 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
     # data_json = json.dumps(data)
     # st.json(data_json)
 
-    st.header('Monte Carlo Tree Generated')
-    image = Image.open('tree.png')
-    st.image(image, caption='',
-             use_column_width=True)
+    # st.header('Monte Carlo Tree Generated')
+    # image = Image.open('tree.png')
+    # st.image(image, caption='',
+    #          use_column_width=True)
 
     st.success('Done!')
     st.balloons()
@@ -201,8 +201,8 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 
 # rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 # r1bqkbnr/p1pp1ppp/1pn5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4
-# rnb1kbn1/2Bppp2/1p4p1/2P5/2BPP2p/p4N1P/PP3PP1/R2QK2R b KQq - 0 13
-# e6 Nf6 Nc6 axb2 losing position
+# rn2kbn1/2Bppp2/bp4p1/2P5/2BPP2p/p4N1P/PP3PP1/R2QK2R w KQq - 1 14
+# Qa4 Qb3 Bd5 Bxa6 winning
 # r2q1rk1/pp1n1ppp/2pbpn2/3p4/6b1/1P1P1NP1/PBPNPPBP/R2Q1RK1 w - - 3 9
 # h3 e4 c4 Re1
 # r1bq1rk1/2p1bpp1/p1np1n1p/1p2p3/3PP3/1BP2N1P/PP3PP1/RNBQR1K1 b - - 0 10
@@ -244,7 +244,7 @@ except:
 
 st.sidebar.title("Parameters")
 st.sidebar.text("")
-calc_time = st.sidebar.number_input('Calculation time (seconds)', 10)
+calc_time = st.sidebar.number_input('Calculation time (seconds)', 1)
 st.sidebar.subheader("MCTS")
 c_value = st.sidebar.number_input(
     'UCT exploration constant', 1.4, key='c_value')
@@ -259,7 +259,7 @@ terminal_depth = st.sidebar.slider(
     'Playout terminal depth (MCTS-EPT)', 0, 50, 5)
 
 st.text("")
-algo = st.radio("Select Algorithm", ('MCTS', 'MCTS-EPT'))
+algo = st.radio("Select Algorithm", ('MCTS-EPT', 'MCTS'))
 
 # Call algo on button click
 if st.button('Generate move'):
@@ -284,21 +284,26 @@ num_games = st.number_input(
     'Number of games', 1, key='num_games')
 
 opponent_depth = st.slider(
-    'Stockfish seach depth', 0, 30, 10, key='engine_depth')
+    'Stockfish search depth', 0, 30, 10, key='engine_depth')
 
 if st.button('Start playout'):
+    st.text('Player and opponent stats')
+    st.text('Improve SVG')
+    st.text('Change depth to time?')
 
     if algo == 'MCTS':
         algo = MCTS(board, time=calc_time,
                     max_moves=max_moves, C=c_value)
         playout = Playout(board, num_games, opponent_depth, algo)
-        playout.run_algo_playout()
+        # playout.run_algo_playout()
+        playout.iterate()
 
     elif algo == 'MCTS-EPT':
         algo = MCTSEPT(board, time=calc_time,
                        terminal_depth=terminal_depth, C=ept_c_value, root_C=ept_root_c_value)
         playout = Playout(board, num_games, opponent_depth, algo)
-        playout.run_algo_playout()
+        # playout.run_algo_playout()
+        playout.iterate()
 
     else:
         st.write('No algorithm selected')
