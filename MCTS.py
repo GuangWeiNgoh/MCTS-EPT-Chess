@@ -262,7 +262,7 @@ class MCTS(object):
 
     # **********************************************************************************************************************
 
-    def mcts(self, root, original_player):
+    def algo(self, root, original_player):
         result = False
         # ran_sim = False
         selected_node = self.run_selection(root)
@@ -308,7 +308,7 @@ class MCTS(object):
 
     # **********************************************************************************************************************
 
-    def mcts_init(self):
+    def algo_init(self):
         # add root node
         # globals() method returns the dictionary of the current global symbol table
         # used in this scenario to assign node to unique state key
@@ -330,7 +330,7 @@ class MCTS(object):
 
     # **********************************************************************************************************************
 
-    def mcts_render(self):
+    def algo_render(self):
         print("\n")
         for pre, _, node in RenderTree(globals()[str(self.starting_board_state.fen())+str(0)]):
             treestr = u"%s%s" % (pre, node.weight)
@@ -385,7 +385,7 @@ class MCTS(object):
         filehandle.write(exporter.export(
             globals()[str(self.starting_board_state.fen())+str(0)]))
 
-    def mcts_iter(self):
+    def algo_iter(self):
 
         # determine whose turn it is in the starting state
         if self.starting_board_state.turn:
