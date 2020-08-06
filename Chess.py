@@ -30,7 +30,7 @@ import time
 import datetime
 import json
 import base64  # svg
-import cairosvg  # svg to png to animate board
+# import cairosvg  # svg to png to animate board
 # import concurrent.futures
 # import threading
 import random
@@ -102,27 +102,27 @@ def render_svg(svg):
     st.write(html, unsafe_allow_html=True, key='boardsvg')
 
 
-def animate_board():
-    boardholder = st.empty()
-    count = 0
-    while(1):
-        if count % 2 == 0:
-            board = chess.Board(
-                'r2q1rk1/pp1n1ppp/2pbpn2/3p4/6b1/1P1P1NP1/PBPNPPBP/R2Q1RK1 w - - 3 9')
-            board_svg = chess.svg.board(board=board)
-            cairosvg.svg2png(board_svg, write_to="board.png")
-            boardimg = Image.open('board.png')
-            time.sleep(0.5)
-            boardholder.image(boardimg)
-        else:
-            board = chess.Board(
-                'r1bq1rk1/2p1bpp1/p1np1n1p/1p2p3/3PP3/1BP2N1P/PP3PP1/RNBQR1K1 b - - 0 10')
-            board_svg = chess.svg.board(board=board)
-            cairosvg.svg2png(board_svg, write_to="board.png")
-            boardimg = Image.open('board.png')
-            time.sleep(0.5)
-            boardholder.image(boardimg)
-        count += 1
+# def animate_board():
+#     boardholder = st.empty()
+#     count = 0
+#     while(1):
+#         if count % 2 == 0:
+#             board = chess.Board(
+#                 'r2q1rk1/pp1n1ppp/2pbpn2/3p4/6b1/1P1P1NP1/PBPNPPBP/R2Q1RK1 w - - 3 9')
+#             board_svg = chess.svg.board(board=board)
+#             cairosvg.svg2png(board_svg, write_to="board.png")
+#             boardimg = Image.open('board.png')
+#             time.sleep(0.5)
+#             boardholder.image(boardimg)
+#         else:
+#             board = chess.Board(
+#                 'r1bq1rk1/2p1bpp1/p1np1n1p/1p2p3/3PP3/1BP2N1P/PP3PP1/RNBQR1K1 b - - 0 10')
+#             board_svg = chess.svg.board(board=board)
+#             cairosvg.svg2png(board_svg, write_to="board.png")
+#             boardimg = Image.open('board.png')
+#             time.sleep(0.5)
+#             boardholder.image(boardimg)
+#         count += 1
 
 
 def run_algo(simulation, calc_time):
@@ -287,17 +287,18 @@ opponent_depth = st.slider(
     'Stockfish seach depth', 0, 30, 10, key='engine_depth')
 
 if st.button('Start playout'):
-    # animate_board()
+
     if algo == 'MCTS':
-        mcts = MCTS(board, time=calc_time,
+        algo = MCTS(board, time=calc_time,
                     max_moves=max_moves, C=c_value)
-        playout = Playout(board, num_games, opponent_depth, mcts)
-        playout.run_playout()
+        playout = Playout(board, num_games, opponent_depth, algo)
+        playout.run_algo_playout()
 
     elif algo == 'MCTS-EPT':
-        mctsept = MCTSEPT(board, time=calc_time,
-                          terminal_depth=terminal_depth, C=ept_c_value, root_C=ept_root_c_value)
-        playout = Playout(board, num_games, opponent_depth, mctsept)
+        algo = MCTSEPT(board, time=calc_time,
+                       terminal_depth=terminal_depth, C=ept_c_value, root_C=ept_root_c_value)
+        playout = Playout(board, num_games, opponent_depth, algo)
+        playout.run_algo_playout()
 
     else:
         st.write('No algorithm selected')
