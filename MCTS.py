@@ -331,17 +331,17 @@ class MCTS(object):
     # **********************************************************************************************************************
 
     def algo_render(self):
-        print("\n")
-        for pre, _, node in RenderTree(globals()[str(self.starting_board_state.fen())+str(0)]):
-            treestr = u"%s%s" % (pre, node.weight)
-            print(treestr.ljust(8), node.wins, node.sims, node.score)
-        print("\n")
+        # print("\n")
+        # for pre, _, node in RenderTree(globals()[str(self.starting_board_state.fen())+str(0)]):
+        #     treestr = u"%s%s" % (pre, node.weight)
+        #     print(treestr.ljust(8), node.wins, node.sims, node.score)
+        # print("\n")
 
-        print("Total Wins/Simulations: " + str(globals()
-                                               [str(self.starting_board_state.fen())+str(0)].wins) + "/" + str(globals()[str(self.starting_board_state.fen())+str(0)].sims))
-        print("Total Win Rate: " +
-              str(round(globals()[str(self.starting_board_state.fen())+str(0)].score*100, 2)) + "%")
-        print("\n")
+        # print("Total Wins/Simulations: " + str(globals()
+        #                                        [str(self.starting_board_state.fen())+str(0)].wins) + "/" + str(globals()[str(self.starting_board_state.fen())+str(0)].sims))
+        # print("Total Win Rate: " +
+        #       str(round(globals()[str(self.starting_board_state.fen())+str(0)].score*100, 2)) + "%")
+        # print("\n")
 
         weight_list = []
         winsim_list = []
