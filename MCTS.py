@@ -187,7 +187,7 @@ class MCTS(object):
 
     # **********************************************************************************************************************
 
-    def run_expansion(self, node):
+    def run_expansion(self, node, original_player):
         board_state = chess.Board(node.state)
 
         # move_list = self.get_move_list(board_state)
@@ -295,7 +295,7 @@ class MCTS(object):
 
         else:
             # run expansion if node has been simulated before
-            self.run_expansion(selected_node)
+            self.run_expansion(selected_node, original_player)
             selected_node = selected_node.children[0]
             if selected_node.termnode == True:
                 result = selected_node.termresult
