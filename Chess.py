@@ -188,6 +188,12 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 # Mate in 3:
 # r5rk/5p1p/5R2/4B3/8/8/7P/7K w q - 0 1
 
+# try board.pop() for expansion
+# select random move if multiple highest scores
+# add engine selection
+# print draw
+# print game results (Game 1 - Checkmate)
+
 # Streamlit
 st.title('MCTS Chess Dashboard')
 fen = st.text_input(
