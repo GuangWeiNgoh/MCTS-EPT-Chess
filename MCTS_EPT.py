@@ -127,7 +127,7 @@ class MCTSEPT(object):
 
     # **********************************************************************************************************************
 
-    def run_expansion(self, node):
+    def run_expansion(self, node, original_player):
         board_state = chess.Board(node.state)
 
         # move_list = self.get_move_list(board_state)
@@ -145,12 +145,25 @@ class MCTSEPT(object):
                     # create node if does not exist
                     globals()[str(original_state.fen())+str(i)] = MCTSEPTNode(state=str(original_state.fen()),
                                                                               wins=0, sims=0, key=str(original_state.fen())+str(i), parent=globals()[node.key], weight=board_state.san(move))
+
+                    # For case where node is expanded and new node is terminal node
+                    if original_state.is_game_over():  # check if it is a terminal node
+                        globals()[str(original_state.fen())+str(i)
+                                  ].termnode = True  # set as terminal node
+                        # set terminal result to false if draw or loss
+                        globals()[str(original_state.fen()) +
+                                  str(i)].termresult = False
+                        if board_state.is_checkmate():  # assign winner only if checkmate
+                            if original_state.turn == original_player:
+                                globals()[str(original_state.fen()) +
+                                          str(i)].termresult = False
+                            else:
+                                globals()[str(original_state.fen()) +
+                                          str(i)].termresult = True
+
                     break
                 else:
                     i += 1  # increment index if exists
-
-        node = node.children[0]
-        return node
 
     # **********************************************************************************************************************
 
@@ -159,11 +172,20 @@ class MCTSEPT(object):
         board_state = chess.Board(node.state)
         for move in range(self.terminal_depth):
 
-            # board_state.push(random.choice(list(board_state.legal_moves)))
-            try:
-                board_state.push(random.choice(list(board_state.legal_moves)))
-            except:
-                print(board_state)
+            board_state.push(random.choice(list(board_state.legal_moves)))
+            # try:
+            #     make = random.choice(list(board_state.legal_moves))
+            #     board_state.push(make)
+
+            # except:
+            #     print('Illegal move during simulation')
+            #     print(board_state)
+            #     print(node.wins)
+            #     print(node.sims)
+            #     while(node.parent):
+            #         print(node.weight)
+            #         node = node.parent
+            #     print(make)
 
             if board_state.is_game_over():
 
@@ -227,22 +249,7 @@ class MCTSEPT(object):
         # ran_sim = False
         selected_node = self.run_selection(root)
         end_sim = False
-
         if(selected_node.sims == 0):
-
-            board_state = chess.Board(selected_node.state)
-            if board_state.is_game_over():  # check if it is a terminal node
-                selected_node.termnode = True  # set as terminal node
-                selected_node.termresult = False  # set terminal result to false if draw or loss
-                if board_state.is_checkmate():  # assign winner only if checkmate
-                    if board_state.turn == original_player:
-                        selected_node.termresult = False
-                    else:
-                        selected_node.termresult = True
-
-                    # if winner == original_player:  # if winner is the original player, return true
-                    #     # set terminal result to true if won
-                    #     selected_node.termresult = True
 
             if selected_node.termnode == False:  # run simulation if it is not terminal
                 result = self.run_simulation(selected_node, original_player)
@@ -255,8 +262,12 @@ class MCTSEPT(object):
 
         else:
             # run expansion if node has been simulated before
-            selected_node = self.run_expansion(selected_node)
-            result = self.run_simulation(selected_node, original_player)
+            self.run_expansion(selected_node, original_player)
+            selected_node = selected_node.children[0]
+            if selected_node.termnode == True:
+                result = selected_node.termresult
+            else:
+                result = self.run_simulation(selected_node, original_player)
             # ran_sim = True  # true if a sim was ran in this iteration
 
         self.run_backpropagation(selected_node, result)
