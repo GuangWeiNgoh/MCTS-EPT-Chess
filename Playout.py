@@ -7,6 +7,7 @@ import time
 import datetime
 import streamlit as st
 import cairosvg  # svg to png to animate board
+import MinimaxAlphaBetaPruning
 
 from MCTS import MCTS
 from MCTS_EPT import MCTSEPT
@@ -76,23 +77,22 @@ class Playout(object):
                     self.win_count += 1
             return False  # stop game and reset
 
-        # print(datetime.datetime.utcnow())
-        opponent_engine = chess.engine.SimpleEngine.popen_uci(
-            "stockfish.exe")
-        info = opponent_engine.analyse(
-            self.board_state, chess.engine.Limit(depth=self.search_depth))
+        # # print(datetime.datetime.utcnow())
+        # opponent_engine = chess.engine.SimpleEngine.popen_uci(
+        #     "stockfish.exe")
         # info = opponent_engine.analyse(
-        #     self.board_state, chess.engine.Limit(time=0.005))
-        # print(datetime.datetime.utcnow())
+        #     self.board_state, chess.engine.Limit(depth=self.search_depth))
+        # # info = opponent_engine.analyse(
+        # #     self.board_state, chess.engine.Limit(time=0.005))
+        # # print(datetime.datetime.utcnow())
+        # opponent_best_move = info["pv"][0]
+        # opponent_engine.quit()
 
-        opponent_best_move = info["pv"][0]
+        opponent_best_move = MinimaxAlphaBetaPruning.calculateMove(
+            self.board_state)
+
         self.board_state.push(opponent_best_move)
-        # try:
-        #     self.board_state.push(opponent_best_move)
-        # except:
-        #     print(self.board_state.fen())
-        #     print(list(self.board_state.legal_moves))
-        opponent_engine.quit()
+        # opponent_engine.quit()
         time.sleep(0.5)
         self.animate_board(opponent_best_move)
 
