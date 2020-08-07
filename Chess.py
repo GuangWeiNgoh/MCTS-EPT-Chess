@@ -24,8 +24,8 @@ import pandas as pd
 # import plotly.figure_factory as ff
 import plotly.express as px
 import numpy as np
-import graphviz as graphviz
-import pydotplus
+# import graphviz as graphviz
+# import pydotplus
 import time
 import datetime
 import json
@@ -100,29 +100,6 @@ def render_svg(svg):
     html = r'<img id="boardsvg" src="data:image/svg+xml;base64,%s" width="400" height="400"/>' % b64
     # boardsvg.write(html, unsafe_allow_html=True)
     st.write(html, unsafe_allow_html=True, key='boardsvg')
-
-
-# def animate_board():
-#     boardholder = st.empty()
-#     count = 0
-#     while(1):
-#         if count % 2 == 0:
-#             board = chess.Board(
-#                 'r2q1rk1/pp1n1ppp/2pbpn2/3p4/6b1/1P1P1NP1/PBPNPPBP/R2Q1RK1 w - - 3 9')
-#             board_svg = chess.svg.board(board=board)
-#             cairosvg.svg2png(board_svg, write_to="board.png")
-#             boardimg = Image.open('board.png')
-#             time.sleep(0.5)
-#             boardholder.image(boardimg)
-#         else:
-#             board = chess.Board(
-#                 'r1bq1rk1/2p1bpp1/p1np1n1p/1p2p3/3PP3/1BP2N1P/PP3PP1/RNBQR1K1 b - - 0 10')
-#             board_svg = chess.svg.board(board=board)
-#             cairosvg.svg2png(board_svg, write_to="board.png")
-#             boardimg = Image.open('board.png')
-#             time.sleep(0.5)
-#             boardholder.image(boardimg)
-#         count += 1
 
 
 def run_algo(simulation, calc_time):
@@ -208,6 +185,9 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 # r1bq1rk1/2p1bpp1/p1np1n1p/1p2p3/3PP3/1BP2N1P/PP3PP1/RNBQR1K1 b - - 0 10
 # Re8 Bb7 Bd7 Na5
 
+# Mate in 3:
+# r5rk/5p1p/5R2/4B3/8/8/7P/7K w q - 0 1
+
 # Streamlit
 st.title('MCTS Chess Dashboard')
 fen = st.text_input(
@@ -284,12 +264,14 @@ num_games = st.number_input(
     'Number of games', 1, key='num_games')
 
 opponent_depth = st.slider(
-    'Stockfish search depth', 0, 30, 10, key='engine_depth')
+    'Stockfish search depth', 0, 30, 1, key='engine_depth')
 
 if st.button('Start playout'):
-    st.text('Player and opponent stats')
-    st.text('Improve SVG')
-    st.text('Change depth to time?')
+    # st.text('Player and opponent stats')
+    # st.text('Improve SVG')
+    # st.text('Change depth to time?')
+    st.subheader(str(num_games)+' Game Playout')
+    st.text(str(algo) + ' vs Stockfish Depth ' + str(opponent_depth))
 
     if algo == 'MCTS':
         algo = MCTS(board, time=calc_time,
