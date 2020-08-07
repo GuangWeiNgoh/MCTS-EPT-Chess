@@ -22,6 +22,9 @@ class Playout(object):
         self.search_depth = depth
         self.algo_obj = algo_obj
         globals()['boardholder'] = st.empty()
+        globals()['scoreboard'] = st.empty()
+        globals()['scoreboard'].text(
+            'Player ' + str(0) + ' - ' + str(0) + ' Opponent')
         self.animate_board(None)  # render starting board position
         if board.turn:
             self.original_player = True
@@ -55,6 +58,7 @@ class Playout(object):
                 break
         best_move, _, _, _, _, _ = self.algo_obj.algo_render()
 
+        # parse from san to uci for last move on svg
         best_move_uci = self.board_state.parse_san(best_move)
         self.board_state.push_san(best_move)
         # try:
@@ -75,10 +79,10 @@ class Playout(object):
         # print(datetime.datetime.utcnow())
         opponent_engine = chess.engine.SimpleEngine.popen_uci(
             "stockfish.exe")
-        # info = opponent_engine.analyse(
-        #     self.board_state, chess.engine.Limit(depth=self.search_depth))
         info = opponent_engine.analyse(
-            self.board_state, chess.engine.Limit(time=0.005))
+            self.board_state, chess.engine.Limit(depth=self.search_depth))
+        # info = opponent_engine.analyse(
+        #     self.board_state, chess.engine.Limit(time=0.005))
         # print(datetime.datetime.utcnow())
 
         opponent_best_move = info["pv"][0]
@@ -108,6 +112,8 @@ class Playout(object):
             self.board_state = self.starting_board_state.copy()
             while(result):
                 result = self.run_algo_playout()
+                globals()['scoreboard'].text(
+                    'Player ' + str(self.win_count) + ' - ' + str(self.lose_count) + ' Opponent')
                 print('Wins: ' + str(self.win_count))
                 print('Loses: ' + str(self.lose_count))
                 print('\n')
