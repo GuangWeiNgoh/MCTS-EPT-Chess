@@ -98,8 +98,8 @@ class Playout(object):
     def iterate(self):
         for i in range(self.num_games):
             result = True
+            self.board_state = self.starting_board_state.copy()
             while(result):
                 result = self.run_algo_playout()
                 print('Wins: ' + str(self.win_count))
                 print('Loses: ' + str(self.lose_count))
-            self.board_state = self.starting_board_state.copy()
