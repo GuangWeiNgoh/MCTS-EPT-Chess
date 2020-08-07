@@ -88,8 +88,10 @@ class Playout(object):
         # opponent_best_move = info["pv"][0]
         # opponent_engine.quit()
 
-        opponent_best_move = MinimaxAlphaBetaPruning.calculateMove(
-            self.board_state)
+        print(datetime.datetime.utcnow())
+        opponent_best_move = MinimaxAlphaBetaPruning.minimaxRoot(
+            4, self.board_state, True)
+        print(datetime.datetime.utcnow())
 
         self.board_state.push(opponent_best_move)
         # opponent_engine.quit()
