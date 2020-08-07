@@ -22,7 +22,7 @@ class Playout(object):
         self.search_depth = depth
         self.algo_obj = algo_obj
         globals()['boardholder'] = st.empty()
-        self.animate_board()  # render starting board position
+        self.animate_board(None)  # render starting board position
         if board.turn:
             self.original_player = True
         else:
@@ -30,8 +30,9 @@ class Playout(object):
         self.win_count = 0
         self.lose_count = 0
 
-    def animate_board(self):
-        board_svg = chess.svg.board(board=self.board_state)
+    def animate_board(self, move):
+        board_svg = chess.svg.board(
+            board=self.board_state, lastmove=move)
         cairosvg.svg2png(board_svg, write_to="board.png")
         boardimg = Image.open('board.png')
         # time.sleep(0.5)
@@ -53,12 +54,15 @@ class Playout(object):
             if end_sim:
                 break
         best_move, _, _, _, _, _ = self.algo_obj.algo_render()
-        try:
-            self.board_state.push_san(best_move)
-        except:
-            print(self.board_state.fen())
-            print(list(self.board_state.legal_moves))
-        self.animate_board()
+
+        best_move_uci = self.board_state.parse_san(best_move)
+        self.board_state.push_san(best_move)
+        # try:
+        #     self.board_state.push_san(best_move_uci)
+        # except:
+        #     print(self.board_state.fen())
+        #     print(list(self.board_state.legal_moves))
+        self.animate_board(best_move_uci)
 
         if self.board_state.is_game_over():
             if self.board_state.is_checkmate():  # assign winner only if checkmate
@@ -76,14 +80,17 @@ class Playout(object):
         info = opponent_engine.analyse(
             self.board_state, chess.engine.Limit(time=0.005))
         # print(datetime.datetime.utcnow())
-        try:
-            self.board_state.push(info["pv"][0])
-        except:
-            print(self.board_state.fen())
-            print(list(self.board_state.legal_moves))
+
+        opponent_best_move = info["pv"][0]
+        self.board_state.push(opponent_best_move)
+        # try:
+        #     self.board_state.push(opponent_best_move)
+        # except:
+        #     print(self.board_state.fen())
+        #     print(list(self.board_state.legal_moves))
         opponent_engine.quit()
         time.sleep(0.5)
-        self.animate_board()
+        self.animate_board(opponent_best_move)
 
         if self.board_state.is_game_over():
             if self.board_state.is_checkmate():  # assign winner only if checkmate
@@ -103,3 +110,4 @@ class Playout(object):
                 result = self.run_algo_playout()
                 print('Wins: ' + str(self.win_count))
                 print('Loses: ' + str(self.lose_count))
+                print('\n')
