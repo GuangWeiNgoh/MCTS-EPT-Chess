@@ -317,8 +317,11 @@ class MCTSEPT(object):
         weight_list = []
         winsim_list = []
         score_list = []
+        tie_list = []  # for best moves that have tied scores
         best_score = -math.inf
         best_move = "invalid move"
+
+        # find highest score in children
         for child in globals()[str(self.starting_board_state.fen())+str(0)].children:
             print(str(child.weight) + ": " +
                   str(round(child.score*100, 2)) + "% Advantage")
@@ -327,7 +330,16 @@ class MCTSEPT(object):
             score_list.append(round(child.score*100, 2))
             if child.score > best_score:
                 best_score = child.score
-                best_move = child.weight
+                # best_move = child.weight
+
+        # append weights of children with highest scores
+        for child in globals()[str(self.starting_board_state.fen())+str(0)].children:
+            if child.score == best_score:
+                tie_list.append(child.weight)
+
+        print("\nBest Move List: ")
+        print(tie_list)
+        best_move = random.choice(tie_list)  # random move from highest scores
 
         print("\n")
         print("Best Move: " + str(best_move))
