@@ -54,7 +54,7 @@ def minimax(depth, board, alpha, beta, is_maximizing):
 
 
 def calculateMove(board):
-    possible_moves = list(board.legal_moves)
+    possible_moves = board.legal_moves
     if(len(possible_moves) == 0):
         print("No more possible moves...Game Over")
         sys.exit()
