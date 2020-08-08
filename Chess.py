@@ -190,9 +190,9 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 
 # try board.pop() for expansion
 # select random move if multiple highest scores
-# add engine selection
 # print draw
 # print game results (Game 1 - Checkmate)
+# init use expansion
 
 # Streamlit
 st.title('MCTS Chess Dashboard')
@@ -269,15 +269,24 @@ st.header('Playout vs Stockfish')
 num_games = st.number_input(
     'Number of games', 1, key='num_games')
 
-opponent_depth = st.slider(
-    'Stockfish search depth', 0, 30, 1, key='engine_depth')
+opponent_selection = st.selectbox(
+    'Opponent engine', ('Minimax with Alpha-Beta Pruning', 'Stockfish 11'))
+
+if opponent_selection == 'Stockfish 11':
+    opponent_depth = st.slider(
+        'Stockfish search depth', 0, 20, 1, key='stockfish_depth')
+else:
+    opponent_depth = st.slider(
+        'Minimax search depth', 0, 20, 4, key='minimax_depth')
+
 
 if st.button('Start playout'):
     # st.text('Player and opponent stats')
     # st.text('Improve SVG')
     # st.text('Change depth to time?')
     st.subheader(str(num_games)+' Game Playout')
-    st.text(str(algo) + ' vs Stockfish Depth ' + str(opponent_depth))
+    st.text(str(algo) + ' vs ' + str(opponent_selection) +
+            ' (Depth ' + str(opponent_depth) + ')')
 
     if algo == 'MCTS':
         algo = MCTS(board, time=calc_time,
