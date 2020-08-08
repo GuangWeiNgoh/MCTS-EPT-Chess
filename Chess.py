@@ -189,9 +189,8 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 # r5rk/5p1p/5R2/4B3/8/8/7P/7K w q - 0 1
 
 # try board.pop() for expansion
+# try max() function for selection
 # select random move if multiple highest scores
-# print draw
-# print game results (Game 1 - Checkmate)
 # init use expansion
 
 # Streamlit
@@ -264,7 +263,7 @@ if st.button('Generate move'):
     show_stats(best_move, weight_list, winsim_list,
                score_list, total_wins, total_sims, algo)
 
-st.header('Playout vs Stockfish')
+st.header('Playout vs Opponent Engine')
 
 num_games = st.number_input(
     'Number of games', 1, key='num_games')
@@ -291,14 +290,16 @@ if st.button('Start playout'):
     if algo == 'MCTS':
         algo = MCTS(board, time=calc_time,
                     max_moves=max_moves, C=c_value)
-        playout = Playout(board, num_games, opponent_depth, algo)
+        playout = Playout(board, num_games,
+                          opponent_selection, opponent_depth, algo)
         # playout.run_algo_playout()
         playout.iterate()
 
     elif algo == 'MCTS-EPT':
         algo = MCTSEPT(board, time=calc_time,
                        terminal_depth=terminal_depth, C=ept_c_value, root_C=ept_root_c_value)
-        playout = Playout(board, num_games, opponent_depth, algo)
+        playout = Playout(board, num_games,
+                          opponent_selection, opponent_depth, algo)
         # playout.run_algo_playout()
         playout.iterate()
 
