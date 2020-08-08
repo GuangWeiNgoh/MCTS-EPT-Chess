@@ -16,16 +16,19 @@ from PIL import Image
 
 class Playout(object):
 
-    def __init__(self, board, games, depth, algo_obj):
+    def __init__(self, board, games, opponent, depth, algo_obj):
         self.starting_board_state = board
         self.board_state = board
         self.num_games = games
+        self.opponent = opponent
         self.search_depth = depth
         self.algo_obj = algo_obj
         globals()['boardholder'] = st.empty()
         globals()['scoreboard'] = st.empty()
+        # globals()['scoreboard'].text(
+        #     'Player ' + str(0) + ' - ' + str(0) + ' Opponent')
         globals()['scoreboard'].text(
-            'Player ' + str(0) + ' - ' + str(0) + ' Opponent')
+            'Wins: ' + str(0) + '\nLosses: ' + str(0) + '\nDraws: ' + str(0))
         self.animate_board(None)  # render starting board position
         if board.turn:
             self.original_player = True
@@ -34,7 +37,7 @@ class Playout(object):
         self.win_count = 0
         self.lose_count = 0
 
-    def animate_board(self, move):
+    def animate_board(self, move):  # save board state to svg then png to display
         board_svg = chess.svg.board(
             board=self.board_state, lastmove=move)
         cairosvg.svg2png(board_svg, write_to="board.png")
@@ -42,15 +45,50 @@ class Playout(object):
         # time.sleep(0.5)
         globals()['boardholder'].image(boardimg)
 
+    def stockfish_move(self):
+        # print(datetime.datetime.utcnow())
+        opponent_engine = chess.engine.SimpleEngine.popen_uci(
+            "stockfish.exe")
+        info = opponent_engine.analyse(
+            self.board_state, chess.engine.Limit(depth=self.search_depth))
+        # info = opponent_engine.analyse(
+        #     self.board_state, chess.engine.Limit(time=0.005))
+        # print(datetime.datetime.utcnow())
+        best_move = info["pv"][0]
+        opponent_engine.quit()
+        return best_move
+
+    def minimax_move(self):
+        # print(datetime.datetime.utcnow())
+        best_move = MinimaxAlphaBetaPruning.minimaxRoot(
+            self.search_depth, self.board_state, True)
+        # print(datetime.datetime.utcnow())
+        return best_move
+
+    def check_game_over(self):  # checks if game has ended, return true if ended
+        game_over = False
+        if self.board_state.is_game_over():
+            if self.board_state.is_checkmate():  # assign winner only if checkmate
+                if self.board_state.turn == self.original_player:
+                    self.lose_count += 1
+                else:
+                    self.win_count += 1
+            game_over = True  # stop game and reset
+        return game_over
+
     def run_algo_playout(self):
-        # initialize root node with children at depth 1
-        # update algo board state with current board
+
+        # update algo board state with current board, important for restarting games
         self.algo_obj.starting_board_state = self.board_state.copy()
+
+        # initialize root node with children at depth 1
         root_node = self.algo_obj.algo_init()
-        if self.board_state.turn:
+
+        if self.board_state.turn:  # determine current player
             player = True
         else:
             player = False
+
         start_time = datetime.datetime.utcnow()  # current time
         # run simulation until allowed time is reached
         while datetime.datetime.utcnow() - start_time < self.algo_obj.calc_time:
@@ -62,60 +100,38 @@ class Playout(object):
         # parse from san to uci for last move on svg
         best_move_uci = self.board_state.parse_san(best_move)
         self.board_state.push_san(best_move)
-        # try:
-        #     self.board_state.push_san(best_move_uci)
-        # except:
-        #     print(self.board_state.fen())
-        #     print(list(self.board_state.legal_moves))
         self.animate_board(best_move_uci)
 
-        if self.board_state.is_game_over():
-            if self.board_state.is_checkmate():  # assign winner only if checkmate
-                if self.board_state.turn == self.original_player:
-                    self.lose_count += 1
-                else:
-                    self.win_count += 1
-            return False  # stop game and reset
+        end_game = self.check_game_over()
+        if end_game:
+            return end_game
 
-        # # print(datetime.datetime.utcnow())
-        # opponent_engine = chess.engine.SimpleEngine.popen_uci(
-        #     "stockfish.exe")
-        # info = opponent_engine.analyse(
-        #     self.board_state, chess.engine.Limit(depth=self.search_depth))
-        # # info = opponent_engine.analyse(
-        # #     self.board_state, chess.engine.Limit(time=0.005))
-        # # print(datetime.datetime.utcnow())
-        # opponent_best_move = info["pv"][0]
-        # opponent_engine.quit()
-
-        print(datetime.datetime.utcnow())
-        opponent_best_move = MinimaxAlphaBetaPruning.minimaxRoot(
-            4, self.board_state, True)
-        print(datetime.datetime.utcnow())
+        # opponent turn
+        if self.opponent == 'Stockfish 11':
+            opponent_best_move = self.stockfish_move()
+        else:
+            opponent_best_move = self.minimax_move()
 
         self.board_state.push(opponent_best_move)
-        # opponent_engine.quit()
-        time.sleep(0.5)
+        time.sleep(0.5)  # delay to see board state after mcts
         self.animate_board(opponent_best_move)
 
-        if self.board_state.is_game_over():
-            if self.board_state.is_checkmate():  # assign winner only if checkmate
-                if self.board_state.turn == self.original_player:
-                    self.lose_count += 1
-                else:
-                    self.win_count += 1
-            return False  # stop game and reset
+        end_game = self.check_game_over()
+        if end_game:
+            return end_game
 
-        return True  # continue game
+        return end_game  # continue game is end_game == False
 
     def iterate(self):
-        for i in range(self.num_games):
-            result = True
+        for each_game in range(self.num_games):
+            end = False
             self.board_state = self.starting_board_state.copy()
-            while(result):
-                result = self.run_algo_playout()
+            while(not(end)):
+                end = self.run_algo_playout()
+                # globals()['scoreboard'].text(
+                #     'Player ' + str(self.win_count) + ' - ' + str(self.lose_count) + ' Opponent')
                 globals()['scoreboard'].text(
-                    'Player ' + str(self.win_count) + ' - ' + str(self.lose_count) + ' Opponent')
+                    'Wins: ' + str(self.win_count) + '\nLosses: ' + str(self.lose_count) + '\nDraws: ')
                 print('Wins: ' + str(self.win_count))
                 print('Loses: ' + str(self.lose_count))
                 print('\n')
