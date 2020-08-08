@@ -129,8 +129,10 @@ class Playout(object):
             opponent_best_move = self.stockfish_move()
         else:
             opponent_best_move = self.minimax_move()
-
-        self.board_state.push(opponent_best_move)
+        try:
+            self.board_state.push(opponent_best_move)
+        except:
+            print(opponent_best_move)
         time.sleep(0.5)  # delay to see board state after mcts
         self.animate_board(opponent_best_move)
 
