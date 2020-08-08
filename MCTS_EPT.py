@@ -321,7 +321,7 @@ class MCTSEPT(object):
         best_move = "invalid move"
         for child in globals()[str(self.starting_board_state.fen())+str(0)].children:
             print(str(child.weight) + ": " +
-                  str(round(child.score*100, 2)) + "% Win Rate")
+                  str(round(child.score*100, 2)) + "% Advantage")
             weight_list.append(child.weight)
             winsim_list.append(str(child.wins) + '/' + str(child.sims))
             score_list.append(round(child.score*100, 2))
