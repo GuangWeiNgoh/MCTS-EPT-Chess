@@ -22,27 +22,26 @@ class Playout(object):
         self.num_games = games
         self.opponent = opponent
         self.search_depth = depth
-        self.algo_obj = algo_obj
+        self.algo_obj = algo_obj  # instance of mcts/mcts-ept
         globals()['boardholder'] = st.empty()
+        self.animate_board(None)  # render starting board position
         globals()['scoreboard'] = st.empty()
-        # globals()['scoreboard'].text(
-        #     'Player ' + str(0) + ' - ' + str(0) + ' Opponent')
         globals()['scoreboard'].text(
             'Wins: ' + str(0) + '\nLosses: ' + str(0) + '\nDraws: ' + str(0))
-        self.animate_board(None)  # render starting board position
         if board.turn:
             self.original_player = True
         else:
             self.original_player = False
         self.win_count = 0
         self.lose_count = 0
+        self.draw_count = 0
+        self.last_game_status = ''  # stores game status of previous game
 
     def animate_board(self, move):  # save board state to svg then png to display
         board_svg = chess.svg.board(
             board=self.board_state, lastmove=move)
         cairosvg.svg2png(board_svg, write_to="board.png")
         boardimg = Image.open('board.png')
-        # time.sleep(0.5)
         globals()['boardholder'].image(boardimg)
 
     def stockfish_move(self):
@@ -68,12 +67,31 @@ class Playout(object):
     def check_game_over(self):  # checks if game has ended, return true if ended
         game_over = False
         if self.board_state.is_game_over():
+            game_over = True  # stop game and reset
             if self.board_state.is_checkmate():  # assign winner only if checkmate
                 if self.board_state.turn == self.original_player:
                     self.lose_count += 1
+                    self.last_game_status = 'Lost (Checkmate)'
                 else:
                     self.win_count += 1
-            game_over = True  # stop game and reset
+                    self.last_game_status = 'Won (Checkmate)'
+
+            if self.board_state.is_stalemate():
+                self.draw_count += 1
+                self.last_game_status = 'Draw (Stalemate)'
+
+            if self.board_state.is_insufficient_material():
+                self.draw_count += 1
+                self.last_game_status = 'Draw (Insufficient Material)'
+
+            if self.board_state.is_seventyfive_moves():
+                self.draw_count += 1
+                self.last_game_status = 'Draw (75 Moves)'
+
+            if self.board_state.is_fivefold_repetition():
+                self.draw_count += 1
+                self.last_game_status = 'Draw (Fivefold Repetition)'
+
         return game_over
 
     def run_algo_playout(self):
@@ -124,14 +142,17 @@ class Playout(object):
 
     def iterate(self):
         for each_game in range(self.num_games):
+            game_number = each_game + 1
             end = False
             self.board_state = self.starting_board_state.copy()
+
             while(not(end)):
                 end = self.run_algo_playout()
-                # globals()['scoreboard'].text(
-                #     'Player ' + str(self.win_count) + ' - ' + str(self.lose_count) + ' Opponent')
-                globals()['scoreboard'].text(
-                    'Wins: ' + str(self.win_count) + '\nLosses: ' + str(self.lose_count) + '\nDraws: ')
                 print('Wins: ' + str(self.win_count))
                 print('Loses: ' + str(self.lose_count))
                 print('\n')
+
+            globals()['scoreboard'].text(
+                'Wins: ' + str(self.win_count) + '\nLosses: ' + str(self.lose_count) + '\nDraws: ' + str(self.draw_count))
+            st.text('Game ' + str(game_number) +
+                    ' - ' + str(self.last_game_status))
