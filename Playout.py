@@ -40,9 +40,11 @@ class Playout(object):
     def animate_board(self, move):  # save board state to svg then png to display
         board_svg = chess.svg.board(
             board=self.board_state, lastmove=move)
+        # cairosvg.svg2png(board_svg, write_to="board.png",
+        #                  output_width=1600, output_height=1600)
         cairosvg.svg2png(board_svg, write_to="board.png")
         boardimg = Image.open('board.png')
-        globals()['boardholder'].image(boardimg)
+        globals()['boardholder'].image(boardimg, width=400)
 
     def stockfish_move(self):
         # print(datetime.datetime.utcnow())
