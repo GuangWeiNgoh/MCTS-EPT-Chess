@@ -11,7 +11,6 @@ import sys
 # pip install graphviz
 # pip install pydotplus
 # pip install cairosvg
-# Test commit from desktop
 
 import asyncio
 import chess
