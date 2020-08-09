@@ -6,6 +6,7 @@ Lib
 Scripts
 share
 LICENSE
+LICENSE.txt
 Chess(Async).py
 test.json
 tree.json
@@ -15,3 +16,4 @@ board.png
 .vscode
 tcl
 Include
+pyvenv.cfg
