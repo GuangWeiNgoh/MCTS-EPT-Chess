@@ -16,3 +16,4 @@ board.png
 .vscode
 tcl
 Include
+pyvenv.cfg
