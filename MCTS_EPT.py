@@ -145,7 +145,7 @@ class MCTSEPT(object):
                 except:
                     # create node if does not exist
                     globals()[str(original_state.fen())+str(i)] = MCTSEPTNode(state=str(original_state.fen()),
-                                                                              wins=0, sims=0, key=str(original_state.fen())+str(i), parent=globals()[node.key], weight=board_state.san(move))
+                                                                              advs=0, sims=0, key=str(original_state.fen())+str(i), parent=globals()[node.key], weight=board_state.san(move))
 
                     # For case where node is expanded and new node is terminal node
                     if original_state.is_game_over():  # check if it is a terminal node
@@ -181,7 +181,7 @@ class MCTSEPT(object):
             # except:
             #     print('Illegal move during simulation')
             #     print(board_state)
-            #     print(node.wins)
+            #     print(node.advs)
             #     print(node.sims)
             #     while(node.parent):
             #         print(node.weight)
@@ -230,17 +230,17 @@ class MCTSEPT(object):
 
     def run_backpropagation(self, node, result):
         if result:  # update simulated node and all parents with 1/1 if win
-            node.wins += 1
+            node.advs += 1
             node.sims += 1
             while(node.parent):
-                node.parent.wins += 1
+                node.parent.advs += 1
                 node.parent.sims += 1
                 node = node.parent
         else:  # update simulated node and all parents with 0/1 if lose
-            node.wins += 0
+            node.advs += 0
             node.sims += 1
             while(node.parent):
-                node.parent.wins += 0
+                node.parent.advs += 0
                 node.parent.sims += 1
                 node = node.parent
 
@@ -286,7 +286,7 @@ class MCTSEPT(object):
         # globals() method returns the dictionary of the current global symbol table
         # used in this scenario to assign node to unique state key
         globals()[str(self.starting_board_state.fen())+str(0)] = MCTSEPTNode(state=str(self.starting_board_state.fen()),
-                                                                             wins=0, sims=0, key=str(self.starting_board_state.fen())+str(0))
+                                                                             advs=0, sims=0, key=str(self.starting_board_state.fen())+str(0))
 
         # generate legal moves for starting state
         self.run_expansion(
@@ -298,7 +298,7 @@ class MCTSEPT(object):
         #     # original_state.push_san(move)
         #     original_state.push(move)
         #     globals()[str(original_state.fen())+str(0)] = MCTSEPTNode(state=str(original_state.fen()),
-        #                                                               wins=0, sims=0, key=str(original_state.fen())+str(0), parent=globals()[str(self.starting_board_state.fen())+str(0)], weight=self.starting_board_state.san(move))
+        #                                                               advs=0, sims=0, key=str(original_state.fen())+str(0), parent=globals()[str(self.starting_board_state.fen())+str(0)], weight=self.starting_board_state.san(move))
 
         return globals()[str(self.starting_board_state.fen())+str(0)]
 
@@ -310,11 +310,11 @@ class MCTSEPT(object):
         # print("\n")
         # for pre, _, node in RenderTree(globals()[str(self.starting_board_state.fen())+str(0)]):
         #     treestr = u"%s%s" % (pre, node.weight)
-        #     print(treestr.ljust(8), node.wins, node.sims, node.score)
+        #     print(treestr.ljust(8), node.advs, node.sims, node.score)
         # print("\n")
 
-        # print("Total Wins/Simulations: " + str(globals()
-        #                                        [str(self.starting_board_state.fen())+str(0)].wins) + "/" + str(globals()[str(self.starting_board_state.fen())+str(0)].sims))
+        # print("Total Advantages/Simulations: " + str(globals()
+        #                                        [str(self.starting_board_state.fen())+str(0)].advs) + "/" + str(globals()[str(self.starting_board_state.fen())+str(0)].sims))
         # print("Total Win Rate: " +
         #       str(round(globals()[str(self.starting_board_state.fen())+str(0)].score*100, 2)) + "%")
         # print("\n")
@@ -331,7 +331,7 @@ class MCTSEPT(object):
             print(str(child.weight) + ": " +
                   str(round(child.score*100, 2)) + "% Advantage")
             weight_list.append(child.weight)
-            winsim_list.append(str(child.wins) + '/' + str(child.sims))
+            winsim_list.append(str(child.advs) + '/' + str(child.sims))
             score_list.append(round(child.score*100, 2))
             if child.score > best_score:
                 best_score = child.score
@@ -364,7 +364,7 @@ class MCTSEPT(object):
         # DotExporter(globals()[str(self.starting_board_state.fen())+str(0)]).to_dotfile(
         #     "tree.dot")
 
-        return best_move, weight_list, winsim_list, score_list, globals()[str(self.starting_board_state.fen())+str(0)].wins, globals()[str(self.starting_board_state.fen())+str(0)].sims
+        return best_move, weight_list, winsim_list, score_list, globals()[str(self.starting_board_state.fen())+str(0)].advs, globals()[str(self.starting_board_state.fen())+str(0)].sims
 
     def json_export(self):
         exporter = JsonExporter(
