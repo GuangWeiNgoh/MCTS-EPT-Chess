@@ -190,8 +190,6 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 
 # try board.pop() for expansion
 # try max() function for selection
-# select random move if multiple highest scores
-# init use expansion
 
 # Streamlit
 st.title('MCTS Chess Dashboard')
@@ -213,19 +211,20 @@ except:
     st.write('Invalid Fen')
 
 
-# # Evalutate score using stockfish evaluation
-# engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
-# print("\n")
-# print(datetime.datetime.utcnow())
-# # info = engine.analyse(board, chess.engine.Limit(time=0.1))
+# Evalutate score using stockfish evaluation
+engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
+print("\n")
+print(datetime.datetime.utcnow())
+info = engine.analyse(board, chess.engine.Limit(time=0.1))
+# info = engine.analyse(board, chess.engine.Limit(depth=20))
+print(info['score'])
 # info = engine.analyse(board, chess.engine.Limit(depth=20), multipv=4)
-# # print("Score:", info["score"])
 # print(board.san(info[0]["pv"][0]))
 # print(board.san(info[1]["pv"][0]))
 # print(board.san(info[2]["pv"][0]))
 # print(board.san(info[3]["pv"][0]))
-# print(datetime.datetime.utcnow())
-# engine.quit()  # Exit stockfish engine
+print(datetime.datetime.utcnow())
+engine.quit()  # Exit stockfish engine
 
 st.sidebar.title("Parameters")
 st.sidebar.text("")
