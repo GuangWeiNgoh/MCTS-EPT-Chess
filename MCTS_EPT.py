@@ -48,6 +48,7 @@ class MCTSEPT(object):
         print("\n")
         self.C = kwargs.get('C', 1.4)  # UCT exploration constant
         self.root_C = kwargs.get('root_C', 8.4)
+        self.original_player = kwargs.get('player', None)
         self.engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
 
     # **********************************************************************************************************************
@@ -127,7 +128,7 @@ class MCTSEPT(object):
 
     # **********************************************************************************************************************
 
-    def run_expansion(self, node, original_player):
+    def run_expansion(self, node):
         board_state = chess.Board(node.state)
 
         # move_list = self.get_move_list(board_state)
@@ -153,8 +154,8 @@ class MCTSEPT(object):
                         # set terminal result to false if draw or loss
                         globals()[str(original_state.fen()) +
                                   str(i)].termresult = False
-                        if board_state.is_checkmate():  # assign winner only if checkmate
-                            if original_state.turn == original_player:
+                        if original_state.is_checkmate():  # assign winner only if checkmate
+                            if original_state.turn == self.original_player:
                                 globals()[str(original_state.fen()) +
                                           str(i)].termresult = False
                             else:
@@ -167,7 +168,7 @@ class MCTSEPT(object):
 
     # **********************************************************************************************************************
 
-    def run_simulation(self, node, original_player):
+    def run_simulation(self, node):
         # convert fen string back to board object
         board_state = chess.Board(node.state)
         for move in range(self.terminal_depth):
@@ -190,14 +191,15 @@ class MCTSEPT(object):
             if board_state.is_game_over():
 
                 if board_state.is_checkmate():  # assign winner only if checkmate
-                    if board_state.turn == original_player:
+                    if board_state.turn == self.original_player:
                         return False  # is draw considered a loss for mcts-ept?
                     else:
                         return True
                 return False
                 # break
+
         info = self.engine.analyse(board_state, chess.engine.Limit(time=0.01))
-        if original_player:
+        if self.original_player:
             try:
                 pov_score = int(info["score"].white().__str__())
                 if pov_score > 0:
@@ -244,7 +246,7 @@ class MCTSEPT(object):
 
     # **********************************************************************************************************************
 
-    def algo(self, root, original_player):
+    def algo(self, root):
         result = False
         # ran_sim = False
         selected_node = self.run_selection(root)
@@ -252,7 +254,8 @@ class MCTSEPT(object):
         if(selected_node.sims == 0):
 
             if selected_node.termnode == False:  # run simulation if it is not terminal
-                result = self.run_simulation(selected_node, original_player)
+                result = self.run_simulation(
+                    selected_node)
                 # ran_sim = True  # true if a sim was ran in this iteration
             else:
                 result = selected_node.termresult  # return terminal result if it is terminal
@@ -262,12 +265,13 @@ class MCTSEPT(object):
 
         else:
             # run expansion if node has been simulated before
-            self.run_expansion(selected_node, original_player)
+            self.run_expansion(selected_node)
             selected_node = selected_node.children[0]
             if selected_node.termnode == True:
                 result = selected_node.termresult
             else:
-                result = self.run_simulation(selected_node, original_player)
+                result = self.run_simulation(
+                    selected_node)
             # ran_sim = True  # true if a sim was ran in this iteration
 
         self.run_backpropagation(selected_node, result)
@@ -285,15 +289,16 @@ class MCTSEPT(object):
                                                                              wins=0, sims=0, key=str(self.starting_board_state.fen())+str(0))
 
         # generate legal moves for starting state
-        # move_list = self.get_move_list(self.starting_board_state)
-        move_list = list(self.starting_board_state.legal_moves)
+        self.run_expansion(
+            globals()[str(self.starting_board_state.fen())+str(0)])
+        # move_list = list(self.starting_board_state.legal_moves)
 
-        for move in move_list:  # add all legal move nodes to tree
-            original_state = self.starting_board_state.copy()
-            # original_state.push_san(move)
-            original_state.push(move)
-            globals()[str(original_state.fen())+str(0)] = MCTSEPTNode(state=str(original_state.fen()),
-                                                                      wins=0, sims=0, key=str(original_state.fen())+str(0), parent=globals()[str(self.starting_board_state.fen())+str(0)], weight=self.starting_board_state.san(move))
+        # for move in move_list:  # add all legal move nodes to tree
+        #     original_state = self.starting_board_state.copy()
+        #     # original_state.push_san(move)
+        #     original_state.push(move)
+        #     globals()[str(original_state.fen())+str(0)] = MCTSEPTNode(state=str(original_state.fen()),
+        #                                                               wins=0, sims=0, key=str(original_state.fen())+str(0), parent=globals()[str(self.starting_board_state.fen())+str(0)], weight=self.starting_board_state.san(move))
 
         return globals()[str(self.starting_board_state.fen())+str(0)]
 

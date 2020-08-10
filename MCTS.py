@@ -47,6 +47,7 @@ class MCTS(object):
         print("Maximum moves: " + str(self.max_moves))
         print("\n")
         self.C = kwargs.get('C', 1.4)  # UCT exploration constant
+        self.original_player = kwargs.get('player', None)
 
     # **********************************************************************************************************************
 
@@ -187,7 +188,7 @@ class MCTS(object):
 
     # **********************************************************************************************************************
 
-    def run_expansion(self, node, original_player):
+    def run_expansion(self, node):
         board_state = chess.Board(node.state)
 
         # move_list = self.get_move_list(board_state)
@@ -210,16 +211,17 @@ class MCTS(object):
                     if original_state.is_game_over():  # check if it is a terminal node
                         globals()[str(original_state.fen())+str(i)
                                   ].termnode = True  # set as terminal node
-                        # set terminal result to false if draw or loss
-                        globals()[str(original_state.fen()) +
-                                  str(i)].termresult = False
-                        if board_state.is_checkmate():  # assign winner only if checkmate
-                            if original_state.turn == original_player:
+                        if original_state.is_checkmate():  # assign winner only if checkmate
+                            if original_state.turn == self.original_player:
                                 globals()[str(original_state.fen()) +
                                           str(i)].termresult = False
                             else:
                                 globals()[str(original_state.fen()) +
                                           str(i)].termresult = True
+                        else:
+                            # set terminal result to false if draw
+                            globals()[str(original_state.fen()) +
+                                      str(i)].termresult = False
 
                     break
                 else:
@@ -227,7 +229,7 @@ class MCTS(object):
 
     # **********************************************************************************************************************
 
-    def run_simulation(self, node, original_player):
+    def run_simulation(self, node):
         # convert fen string back to board object
         board_state = chess.Board(node.state)
         # print(node.weight)
@@ -244,12 +246,12 @@ class MCTS(object):
             if board_state.is_game_over():
 
                 if board_state.is_checkmate():  # assign winner only if checkmate
-                    if board_state.turn == original_player:
+                    if board_state.turn == self.original_player:
                         return False
                     else:
                         return True
 
-                    # if winner == original_player:  # if winner is the original player, return true
+                    # if winner == self.original_player:  # if winner is the original player, return true
                     #     return True
                     # else:
                     #     return False
@@ -276,7 +278,7 @@ class MCTS(object):
 
     # **********************************************************************************************************************
 
-    def algo(self, root, original_player):
+    def algo(self, root):
         result = False
         # ran_sim = False
         selected_node = self.run_selection(root)
@@ -285,7 +287,7 @@ class MCTS(object):
         if(selected_node.sims == 0):
 
             if selected_node.termnode == False:  # run simulation if it is not terminal
-                result = self.run_simulation(selected_node, original_player)
+                result = self.run_simulation(selected_node)
                 # ran_sim = True  # true if a sim was ran in this iteration
             else:
                 result = selected_node.termresult  # return terminal result if it is terminal
@@ -295,13 +297,17 @@ class MCTS(object):
 
         else:
             # run expansion if node has been simulated before
-            self.run_expansion(selected_node, original_player)
+            self.run_expansion(selected_node)
             selected_node = selected_node.children[0]
             if selected_node.termnode == True:
                 result = selected_node.termresult
             else:
-                result = self.run_simulation(selected_node, original_player)
+                result = self.run_simulation(selected_node)
             # ran_sim = True  # true if a sim was ran in this iteration
+
+        # print(selected_node.weight)
+        # print(selected_node.termnode)
+        # print(selected_node.termresult)
 
         self.run_backpropagation(selected_node, result)
         # if ran_sim:
@@ -318,15 +324,17 @@ class MCTS(object):
                                                                           wins=0, sims=0, key=str(self.starting_board_state.fen())+str(0))
 
         # generate legal moves for starting state
-        # move_list = self.get_move_list(self.starting_board_state)
-        move_list = list(self.starting_board_state.legal_moves)
+        self.run_expansion(
+            globals()[str(self.starting_board_state.fen())+str(0)])
 
-        for move in move_list:  # add all legal move nodes to tree
-            original_state = self.starting_board_state.copy()
-            # original_state.push_san(move)
-            original_state.push(move)
-            globals()[str(original_state.fen())+str(0)] = MCTSNode(state=str(original_state.fen()),
-                                                                   wins=0, sims=0, key=str(original_state.fen())+str(0), parent=globals()[str(self.starting_board_state.fen())+str(0)], weight=self.starting_board_state.san(move))
+        # move_list = list(self.starting_board_state.legal_moves)
+
+        # for move in move_list:  # add all legal move nodes to tree
+        #     original_state = self.starting_board_state.copy()
+        #     # original_state.push_san(move)
+        #     original_state.push(move)
+        #     globals()[str(original_state.fen())+str(0)] = MCTSNode(state=str(original_state.fen()),
+        #                                                            wins=0, sims=0, key=str(original_state.fen())+str(0), parent=globals()[str(self.starting_board_state.fen())+str(0)], weight=self.starting_board_state.san(move))
 
         return globals()[str(self.starting_board_state.fen())+str(0)]
 

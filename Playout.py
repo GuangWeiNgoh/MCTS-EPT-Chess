@@ -104,15 +104,15 @@ class Playout(object):
         # initialize root node with children at depth 1
         root_node = self.algo_obj.algo_init()
 
-        if self.board_state.turn:  # determine current player
-            player = True
-        else:
-            player = False
+        # if self.board_state.turn:  # determine current player
+        #     player = True
+        # else:
+        #     player = False
 
         start_time = datetime.datetime.utcnow()  # current time
         # run simulation until allowed time is reached
         while datetime.datetime.utcnow() - start_time < self.algo_obj.calc_time:
-            end_sim = self.algo_obj.algo(root_node, player)
+            end_sim = self.algo_obj.algo(root_node)
             if end_sim:
                 break
         best_move, _, _, _, _, _ = self.algo_obj.algo_render()
