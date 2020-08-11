@@ -15,7 +15,7 @@ import sys
 from copy import deepcopy
 # from treelib import Node, Tree
 # from graphviz import Digraph
-from MCTS_EPT_Node_2 import MCTSEPT2Node
+from MCTS_EPT_2_Node import MCTSEPT2Node
 from anytree import NodeMixin, RenderTree
 from pprint import pprint
 from collections import OrderedDict
@@ -46,10 +46,11 @@ class MCTSEPT2(object):
         self.terminal_depth = kwargs.get('terminal_depth', 5)
         print("Playout terminal depth: " + str(self.terminal_depth))
         print("\n")
-        self.C = kwargs.get('C', 1.4)  # UCT exploration constant
+        self.C = kwargs.get('C', 1.4)  # UCB1 exploration constant
         self.root_C = kwargs.get('root_C', 8.4)
         self.original_player = kwargs.get('player', None)
         self.engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
+        print("EPT 2")
 
     # **********************************************************************************************************************
 
@@ -80,20 +81,19 @@ class MCTSEPT2(object):
             if node.sims == 0:  # only for root node
                 node = node.children[0]
             else:
-                max_uct = -math.inf
-                uct_score = -math.inf
+                max_ucb = -math.inf
+                ucb_score = -math.inf
                 log_value = log(node.sims)
                 for each in node.children:
-                    # print(c_value)
                     if each.sims == 0:
-                        uct_score = math.inf
+                        ucb_score = math.inf
                     else:
-                        uct_score = ((each.score) + (c_value *
-                                                     sqrt(log_value/each.sims)))
-                        # uct_score = ((each.score) + (self.C *
+                        ucb_score = ((each.score) + (c_value *
+                                                     sqrt((2*log_value)/each.sims)))
+                        # ucb_score = ((each.score) + (c_value *
                         #                              sqrt(log_value/each.sims)))
-                    if uct_score > max_uct:
-                        max_uct = uct_score
+                    if ucb_score > max_ucb:
+                        max_ucb = ucb_score
                         node = each
         return node
 
@@ -115,8 +115,8 @@ class MCTSEPT2(object):
                     globals()[str(original_state.fen())+str(i)]
                 except:
                     # create node if does not exist
-                    globals()[str(original_state.fen())+str(i)] = MCTSEPT2Node(state=str(original_state.fen()),
-                                                                               advs=0, sims=0, key=str(original_state.fen())+str(i), parent=globals()[node.key], weight=board_state.san(move))
+                    globals()[str(original_state.fen())+str(i)] = MCTSEPT2Node(state=str(original_state.fen()), key=str(
+                        original_state.fen())+str(i), parent=globals()[node.key], weight=board_state.san(move))
 
                     # For case where node is expanded and new node is terminal node
                     if original_state.is_game_over():  # check if it is a terminal node
@@ -124,14 +124,14 @@ class MCTSEPT2(object):
                                   ].termnode = True  # set as terminal node
                         # set terminal result to false if draw or loss
                         globals()[str(original_state.fen()) +
-                                  str(i)].termresult = False
+                                  str(i)].termresult = 0.0
                         if original_state.is_checkmate():  # assign winner only if checkmate
                             if original_state.turn == self.original_player:
                                 globals()[str(original_state.fen()) +
-                                          str(i)].termresult = False
+                                          str(i)].termresult = 0.0
                             else:
                                 globals()[str(original_state.fen()) +
-                                          str(i)].termresult = True
+                                          str(i)].termresult = 1.0
 
                     break
                 else:
@@ -145,80 +145,64 @@ class MCTSEPT2(object):
         for move in range(self.terminal_depth):
 
             board_state.push(random.choice(list(board_state.legal_moves)))
-            # try:
-            #     make = random.choice(list(board_state.legal_moves))
-            #     board_state.push(make)
-
-            # except:
-            #     print('Illegal move during simulation')
-            #     print(board_state)
-            #     print(node.advs)
-            #     print(node.sims)
-            #     while(node.parent):
-            #         print(node.weight)
-            #         node = node.parent
-            #     print(make)
 
             if board_state.is_game_over():
 
                 if board_state.is_checkmate():  # assign winner only if checkmate
                     if board_state.turn == self.original_player:
-                        return False  # is draw considered a loss for mcts-ept?
+                        return 0.0
                     else:
-                        return True
-                return False
-                # break
+                        return 1.0
+                return 0.0  # is draw considered a loss for mcts-ept?
 
         info = self.engine.analyse(board_state, chess.engine.Limit(time=0.01))
         if self.original_player:
             try:
                 pov_score = int(info["score"].white().__str__())
-                if pov_score > 0:
-                    return True
-                else:
-                    return False
+                score = 1 / (1 + (10 ** -(pov_score / 400)))
+                # print(score)
+                return score  # returns 1 if pov_score > +4120
             except:
                 pov_score = info["score"].white().__str__()
                 if pov_score[1] == '+':
-                    return True
+                    return 1.0
                 else:
-                    return False
+                    print("Unhandled Score")
+                    print(pov_score)
+                    print(board_state)
+                    print(board_state.fen())
+                    return 0.0
         else:
             try:
                 pov_score = int(info["score"].black().__str__())
-                if pov_score > 0:
-                    return True
-                else:
-                    return False
+                score = 1 / (1 + (10 ** -(pov_score / 400)))
+                # print(score)
+                return score  # returns 1 if pov_score > +4120
             except:
                 pov_score = info["score"].black().__str__()
                 if pov_score[1] == '+':
-                    return True
+                    return 1.0
                 else:
-                    return False
+                    print("Unhandled Score")
+                    print(pov_score)
+                    print(board_state)
+                    print(board_state.fen())
+                    return 0.0
 
     # **********************************************************************************************************************
 
     def run_backpropagation(self, node, result):
-        if result:  # update simulated node and all parents with 1/1 if win
-            node.advs += 1
-            node.sims += 1
-            while(node.parent):
-                node.parent.advs += 1
-                node.parent.sims += 1
-                node = node.parent
-        else:  # update simulated node and all parents with 0/1 if lose
-            node.advs += 0
-            node.sims += 1
-            while(node.parent):
-                node.parent.advs += 0
-                node.parent.sims += 1
-                node = node.parent
+        node.winsum += result
+        node.sims += 1
+        while(node.parent):
+            node.parent.winsum += result
+            node.parent.sims += 1
+            node = node.parent
 
     # **********************************************************************************************************************
 
     def algo(self, root):
-        result = False
+        result = 0.0
         # ran_sim = False
         selected_node = self.run_selection(root)
         end_sim = False
@@ -231,7 +215,7 @@ class MCTSEPT2(object):
             else:
                 result = selected_node.termresult  # return terminal result if it is terminal
 
-        elif(selected_node.termnode == True):  # If terminal node is reselected by UCT
+        elif(selected_node.termnode == True):  # If terminal node is reselected by UCB1
             result = selected_node.termresult
 
         else:
@@ -256,20 +240,18 @@ class MCTSEPT2(object):
         # add root node
         # globals() method returns the dictionary of the current global symbol table
         # used in this scenario to assign node to unique state key
-        globals()[str(self.starting_board_state.fen())+str(0)] = MCTSEPT2Node(state=str(self.starting_board_state.fen()),
-                                                                              advs=0, sims=0, key=str(self.starting_board_state.fen())+str(0))
+        globals()[str(self.starting_board_state.fen())+str(0)] = MCTSEPT2Node(state=str(
+            self.starting_board_state.fen()), key=str(self.starting_board_state.fen())+str(0))
 
         # generate legal moves for starting state
         self.run_expansion(
             globals()[str(self.starting_board_state.fen())+str(0)])
-        # move_list = list(self.starting_board_state.legal_moves)
 
-        # for move in move_list:  # add all legal move nodes to tree
-        #     original_state = self.starting_board_state.copy()
-        #     # original_state.push_san(move)
-        #     original_state.push(move)
-        #     globals()[str(original_state.fen())+str(0)] = MCTSEPTNode(state=str(original_state.fen()),
-        #                                                               advs=0, sims=0, key=str(original_state.fen())+str(0), parent=globals()[str(self.starting_board_state.fen())+str(0)], weight=self.starting_board_state.san(move))
+        # print("\n")
+        # for pre, _, node in RenderTree(globals()[str(self.starting_board_state.fen())+str(0)]):
+        #     treestr = u"%s%s" % (pre, node.weight)
+        #     print(treestr.ljust(8), node.winsum, node.sims, node.score)
+        # print("\n")
 
         return globals()[str(self.starting_board_state.fen())+str(0)]
 
@@ -281,7 +263,8 @@ class MCTSEPT2(object):
         # print("\n")
         # for pre, _, node in RenderTree(globals()[str(self.starting_board_state.fen())+str(0)]):
         #     treestr = u"%s%s" % (pre, node.weight)
-        #     print(treestr.ljust(8), node.advs, node.sims, node.score)
+        #     print(treestr.ljust(8), round(node.winsum, 2),
+        #           node.sims, round(node.score, 2))
         # print("\n")
 
         # print("Total Advantages/Simulations: " + str(globals()
@@ -300,13 +283,13 @@ class MCTSEPT2(object):
         # find highest score in children
         for child in globals()[str(self.starting_board_state.fen())+str(0)].children:
             print(str(child.weight) + ": " +
-                  str(round(child.score*100, 2)) + "% Advantage")
+                  str(round(child.score*100, 2)) + "% Win Rate")
             weight_list.append(child.weight)
-            winsim_list.append(str(child.advs) + '/' + str(child.sims))
+            winsim_list.append(
+                str(round(child.winsum, 2)) + '/' + str(child.sims))
             score_list.append(round(child.score*100, 2))
             if child.score > best_score:
                 best_score = child.score
-                # best_move = child.weight
 
         # append weights of children with highest scores
         for child in globals()[str(self.starting_board_state.fen())+str(0)].children:
@@ -335,7 +318,7 @@ class MCTSEPT2(object):
         # DotExporter(globals()[str(self.starting_board_state.fen())+str(0)]).to_dotfile(
         #     "tree.dot")
 
-        return best_move, weight_list, winsim_list, score_list, globals()[str(self.starting_board_state.fen())+str(0)].advs, globals()[str(self.starting_board_state.fen())+str(0)].sims
+        return best_move, weight_list, winsim_list, score_list, round(globals()[str(self.starting_board_state.fen())+str(0)].winsum, 2), globals()[str(self.starting_board_state.fen())+str(0)].sims
 
     def json_export(self):
         exporter = JsonExporter(

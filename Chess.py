@@ -38,6 +38,7 @@ import random
 from chess.engine import Cp, Mate, MateGiven
 from MCTS import MCTS
 from MCTS_EPT import MCTSEPT
+from MCTS_EPT_2 import MCTSEPT2
 from graphviz import Source
 from PIL import Image
 from Playout import Playout
@@ -135,12 +136,12 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 
     # dot_graph = pydotplus.graphviz.graph_from_dot_file('./tree.dot')
     # dot_graph.write_png("tree.png")
-    if algo == 'MCTS':
-        plot_label = 'Win Percentage (%)'
-        df_label = 'win/sim'
-    else:
+    if algo == 'MCTS-EPT':
         plot_label = 'Advantage Percentage (%)'
         df_label = 'adv/sim'
+    else:
+        plot_label = 'Win Percentage (%)'
+        df_label = 'win/sim'
 
     move_stats_list = pd.DataFrame(
         {'move': weight_list,
@@ -190,6 +191,7 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 
 # try board.pop() for expansion
 # try max() function for selection
+# follow mate in x when found
 
 # Streamlit
 st.title('MCTS Chess Dashboard')
@@ -229,21 +231,32 @@ engine.quit()  # Exit stockfish engine
 st.sidebar.title("Parameters")
 st.sidebar.text("")
 calc_time = st.sidebar.number_input('Calculation time (seconds)', 1)
+
 st.sidebar.subheader("MCTS")
 c_value = st.sidebar.number_input(
     'UCT exploration constant', 1.4, key='c_value')
 max_moves = st.sidebar.slider(
     'Maximum moves per simulation (MCTS)', 0, 1000, 500)
+
 st.sidebar.subheader("MCTS-EPT")
 ept_root_c_value = st.sidebar.number_input(
-    'UCT exploration constant @ root', 3, key='ept_root_c_value')
+    'UCT exploration constant @ root', 3.0, key='ept_root_c_value')
 ept_c_value = st.sidebar.number_input(
     'UCT exploration constant', 1.4, key='ept_c_value')
 terminal_depth = st.sidebar.slider(
-    'Playout terminal depth (MCTS-EPT)', 0, 50, 5)
+    'Playout terminal depth', 0, 50, 5, key='ept_depth')
+
+st.sidebar.subheader("MCTS-EPT (CP Normalized)")
+ept_2_root_c_value = st.sidebar.number_input(
+    'UCT exploration constant @ root', 1.0, key='ept_2_root_c_value')
+ept_2_c_value = st.sidebar.number_input(
+    'UCT exploration constant', 1.0, key='ept_2_c_value')
+terminal_depth_2 = st.sidebar.slider(
+    'Playout terminal depth', 0, 50, 5, key='ept_2_depth')
 
 st.text("")
-algo = st.radio("Select Algorithm", ('MCTS-EPT', 'MCTS'))
+algo = st.radio("Select Algorithm",
+                ('MCTS-EPT (CP Normalized)', 'MCTS-EPT', 'MCTS'))
 
 # Call algo on button click
 if st.button('Generate move'):
@@ -255,6 +268,11 @@ if st.button('Generate move'):
     elif algo == 'MCTS-EPT':
         simulation = MCTSEPT(board, time=calc_time,
                              terminal_depth=terminal_depth, C=ept_c_value, root_C=ept_root_c_value, player=board.turn)
+        best_move, weight_list, winsim_list, score_list, total_wins, total_sims = run_algo(
+            simulation, calc_time)
+    elif algo == 'MCTS-EPT (CP Normalized)':
+        simulation = MCTSEPT2(board, time=calc_time,
+                              terminal_depth=terminal_depth_2, C=ept_2_c_value, root_C=ept_2_root_c_value, player=board.turn)
         best_move, weight_list, winsim_list, score_list, total_wins, total_sims = run_algo(
             simulation, calc_time)
     else:
@@ -297,6 +315,14 @@ if st.button('Start playout'):
     elif algo == 'MCTS-EPT':
         algo = MCTSEPT(board, time=calc_time,
                        terminal_depth=terminal_depth, C=ept_c_value, root_C=ept_root_c_value, player=board.turn)
+        playout = Playout(board, num_games,
+                          opponent_selection, opponent_depth, algo)
+        # playout.run_algo_playout()
+        playout.iterate()
+
+    elif algo == 'MCTS-EPT (CP Normalized)':
+        algo = MCTSEPT2(board, time=calc_time,
+                        terminal_depth=terminal_depth_2, C=ept_2_c_value, root_C=ept_2_root_c_value, player=board.turn)
         playout = Playout(board, num_games,
                           opponent_selection, opponent_depth, algo)
         # playout.run_algo_playout()

@@ -15,21 +15,18 @@ from anytree import NodeMixin, RenderTree
 
 class MCTSEPT2Node(NodeMixin):
 
-    def __init__(self, state, advs, sims, key, parent=None, children=None, weight=None):
+    def __init__(self, state, key, parent=None, children=None, weight=None):
         # Takes an instance of a Board and optionally some keyword
         # arguments.  Initializes the list of game states and the
         # statistics tables.
         # pass
         super(MCTSEPT2Node, self).__init__()
         self.state = state
-        # self.wins = kwargs.get('wins', 0)
-        # self.sims = kwargs.get('sims', 0)
-        self.advs = advs
-        self.sims = sims
+        self.winsum = 0.0  # total added up win percentage
+        self.sims = 0
         self.key = key
         self.termnode = False
-        self.termresult = False
-        # self.score = self.advs / self.sims
+        self.termresult = 0.0
         self.parent = parent
         if children:
             self.children = children
@@ -38,10 +35,10 @@ class MCTSEPT2Node(NodeMixin):
     @property
     def score(self):
         # check if denominator is 0, return 0 if it is
-        return self.advs / self.sims if self.sims else 0
+        return self.winsum / self.sims if self.sims else 0
 
     @property
     def name(self):
         # check if denominator is 0, return 0 if it is
-        return (str(self.advs) + '/' + str(self.sims) + "\n\n" +
+        return (str(self.score) + "\n\n" +
                 str(self.weight or 'Root') + "\n\n" + 'Depth: ' + str(self.depth))
