@@ -167,10 +167,11 @@ class MCTSEPT2(object):
                 if pov_score[1] == '+':
                     return 1.0
                 else:
-                    print("Unhandled Score")
-                    print(pov_score)
-                    print(board_state)
-                    print(board_state.fen())
+                    # opponent mate in x
+                    # print("Unhandled Score")
+                    # print(pov_score)
+                    # print(board_state)
+                    # print(board_state.fen())
                     return 0.0
         else:
             try:
@@ -183,10 +184,11 @@ class MCTSEPT2(object):
                 if pov_score[1] == '+':
                     return 1.0
                 else:
-                    print("Unhandled Score")
-                    print(pov_score)
-                    print(board_state)
-                    print(board_state.fen())
+                    # opponent mate in x
+                    # print("Unhandled Score")
+                    # print(pov_score)
+                    # print(board_state)
+                    # print(board_state.fen())
                     return 0.0
 
     # **********************************************************************************************************************

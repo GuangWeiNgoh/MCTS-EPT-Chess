@@ -192,6 +192,10 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 # try board.pop() for expansion
 # try max() function for selection
 # follow mate in x when found
+# check average time for minimax turn
+# print cp score of board on top
+# print number of moves played
+# set calc time default similar to minimax turn time
 
 # Streamlit
 st.title('MCTS Chess Dashboard')

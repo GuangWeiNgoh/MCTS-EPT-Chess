@@ -23,15 +23,28 @@ class Playout(object):
         self.opponent = opponent
         self.search_depth = depth
         self.algo_obj = algo_obj  # instance of mcts/mcts-ept
-        globals()['boardholder'] = st.empty()
-        self.animate_board(None)  # render starting board position
-        globals()['scoreboard'] = st.empty()
-        globals()['scoreboard'].text(
-            'Wins: ' + str(0) + '\nLosses: ' + str(0) + '\nDraws: ' + str(0))
+        self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
+            "stockfish.exe")
         if board.turn:
             self.original_player = True
         else:
             self.original_player = False
+
+        globals()['num_moves_played'] = st.empty()
+        self.moves_played = 0
+        globals()['num_moves_played'].text(
+            'Moves played: ' + str(self.moves_played))
+
+        globals()['cp_score'] = st.empty()
+        self.update_cp()
+
+        globals()['boardholder'] = st.empty()
+        self.animate_board(None)  # render starting board position
+
+        globals()['scoreboard'] = st.empty()
+        globals()['scoreboard'].text(
+            'Wins: ' + str(0) + '\nLosses: ' + str(0) + '\nDraws: ' + str(0))
+
         self.win_count = 0
         self.lose_count = 0
         self.draw_count = 0
@@ -46,17 +59,27 @@ class Playout(object):
         boardimg = Image.open('board.png')
         globals()['boardholder'].image(boardimg, width=400)
 
+    def update_cp(self):
+        info = self.opponent_engine.analyse(
+            self.board_state, chess.engine.Limit(time=0.1))
+        if self.original_player:
+            globals()['cp_score'].text(
+                'CP: ' + info["score"].white().__str__())
+        else:
+            globals()['cp_score'].text(
+                'CP: ' + info["score"].black().__str__())
+
     def stockfish_move(self):
         # print(datetime.datetime.utcnow())
-        opponent_engine = chess.engine.SimpleEngine.popen_uci(
-            "stockfish.exe")
-        info = opponent_engine.analyse(
+        # opponent_engine = chess.engine.SimpleEngine.popen_uci(
+        #     "stockfish.exe")
+        info = self.opponent_engine.analyse(
             self.board_state, chess.engine.Limit(depth=self.search_depth))
         # info = opponent_engine.analyse(
         #     self.board_state, chess.engine.Limit(time=0.005))
         # print(datetime.datetime.utcnow())
         best_move = info["pv"][0]
-        opponent_engine.quit()
+        # opponent_engine.quit()
         return best_move
 
     def minimax_move(self):
@@ -104,11 +127,6 @@ class Playout(object):
         # initialize root node with children at depth 1
         root_node = self.algo_obj.algo_init()
 
-        # if self.board_state.turn:  # determine current player
-        #     player = True
-        # else:
-        #     player = False
-
         start_time = datetime.datetime.utcnow()  # current time
         # run simulation until allowed time is reached
         while datetime.datetime.utcnow() - start_time < self.algo_obj.calc_time:
@@ -120,7 +138,11 @@ class Playout(object):
         # parse from san to uci for last move on svg
         best_move_uci = self.board_state.parse_san(best_move)
         self.board_state.push_san(best_move)
+        self.moves_played += 1  # update number of moves played from mcts pov
+        globals()['num_moves_played'].text(
+            'Moves played: ' + str(self.moves_played))
         self.animate_board(best_move_uci)
+        self.update_cp()
 
         end_game = self.check_game_over()
         if end_game:
@@ -137,6 +159,7 @@ class Playout(object):
             print(opponent_best_move)
         time.sleep(0.5)  # delay to see board state after mcts
         self.animate_board(opponent_best_move)
+        self.update_cp()
 
         end_game = self.check_game_over()
         if end_game:
@@ -149,6 +172,7 @@ class Playout(object):
             game_number = each_game + 1
             end = False
             self.board_state = self.starting_board_state.copy()
+            self.moves_played = 0
 
             while(not(end)):
                 end = self.run_algo_playout()
@@ -159,4 +183,5 @@ class Playout(object):
             globals()['scoreboard'].text(
                 'Wins: ' + str(self.win_count) + '\nLosses: ' + str(self.lose_count) + '\nDraws: ' + str(self.draw_count))
             st.text('Game ' + str(game_number) +
-                    ' - ' + str(self.last_game_status))
+                    ' - ' + str(self.last_game_status) + ' - ' + str(self.moves_played) + ' Moves')
+        self.opponent_engine.quit()
