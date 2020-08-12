@@ -309,12 +309,12 @@ class MCTSEPT2(object):
     def algo_render(self):
         # self.engine.quit()
 
-        print("\n")
-        for pre, _, node in RenderTree(globals()[str(self.starting_board_state.fen())+str(0)]):
-            treestr = u"%s%s" % (pre, node.weight)
-            print(treestr.ljust(8), round(node.winsum, 2),
-                  node.sims, round(node.score, 2))
-        print("\n")
+        # print("\n")
+        # for pre, _, node in RenderTree(globals()[str(self.starting_board_state.fen())+str(0)]):
+        #     treestr = u"%s%s" % (pre, node.weight)
+        #     print(treestr.ljust(8), round(node.winsum, 2),
+        #           node.sims, round(node.score, 2))
+        # print("\n")
 
         # print("Total Advantages/Simulations: " + str(globals()
         #                                        [str(self.starting_board_state.fen())+str(0)].advs) + "/" + str(globals()[str(self.starting_board_state.fen())+str(0)].sims))
