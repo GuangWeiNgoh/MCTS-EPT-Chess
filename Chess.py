@@ -191,12 +191,17 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 # r5rk/7p/R4p2/4B3/8/8/7P/7K w q - 0 2
 # r6k/6rp/R4B2/8/8/8/7P/7K w q - 1 3
 
+# Mate in 5:
+# 6k1/3b3r/1p1p4/p1n2p2/1PPNpP1q/P3Q1p1/1R1RB1P1/5K2 b
+
 # try board.pop() for expansion
 # try max() function for selection
 # follow mate in x when found
 # check average time for minimax turn
 # set calc time default similar to minimax turn time
 # simplify selection function (duplicate codes)
+# test without lock depth
+# maybe limit max cp for non mate to 5000?
 
 # print(Mate(2).score(mate_score=100000))
 # score = 1 / (1 + (10 ** -(6382 / 400)))
@@ -220,7 +225,6 @@ try:
     render_svg(board_svg)
 except:
     st.write('Invalid Fen')
-
 
 # Evalutate score using stockfish evaluation
 engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
