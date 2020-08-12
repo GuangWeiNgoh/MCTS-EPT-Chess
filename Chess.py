@@ -197,6 +197,10 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 # print number of moves played
 # set calc time default similar to minimax turn time
 
+# print(Mate(2).score(mate_score=100000))
+# score = 1 / (1 + (10 ** -(6382 / 400)))
+# print(score)
+
 # Streamlit
 st.title('MCTS Chess Dashboard')
 fen = st.text_input(
