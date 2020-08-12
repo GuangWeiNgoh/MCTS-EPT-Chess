@@ -188,14 +188,15 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 
 # Mate in 3:
 # r5rk/5p1p/5R2/4B3/8/8/7P/7K w q - 0 1
+# r5rk/7p/R4p2/4B3/8/8/7P/7K w q - 0 2
+# r6k/6rp/R4B2/8/8/8/7P/7K w q - 1 3
 
 # try board.pop() for expansion
 # try max() function for selection
 # follow mate in x when found
 # check average time for minimax turn
-# print cp score of board on top
-# print number of moves played
 # set calc time default similar to minimax turn time
+# simplify selection function (duplicate codes)
 
 # print(Mate(2).score(mate_score=100000))
 # score = 1 / (1 + (10 ** -(6382 / 400)))
