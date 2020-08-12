@@ -50,6 +50,7 @@ class MCTSEPT2(object):
         self.root_C = kwargs.get('root_C', 8.4)
         self.original_player = kwargs.get('player', None)
         self.engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
+        self.lock_depth = False  # lock depth to 1 when mate score is found
         print("EPT 2")
 
     # **********************************************************************************************************************
@@ -69,10 +70,7 @@ class MCTSEPT2(object):
     # **********************************************************************************************************************
 
     def run_selection(self, node):
-        # check if current is leaf node
-        # else select child that maximizes UCB1
-        # while (node.children):  # traverse down until no children left (leaf node)
-        while not(node.is_leaf):
+        if self.lock_depth == True:
             if node.depth == 0:  # use root_C for selection from root node
                 c_value = self.root_C
             else:
@@ -95,6 +93,32 @@ class MCTSEPT2(object):
                     if ucb_score > max_ucb:
                         max_ucb = ucb_score
                         node = each
+        else:
+            # select child that maximizes UCB1
+            # traverse down until no children left (leaf node)
+            while not(node.is_leaf):
+                if node.depth == 0:  # use root_C for selection from root node
+                    c_value = self.root_C
+                else:
+                    c_value = self.C
+
+                if node.sims == 0:  # only for root node
+                    node = node.children[0]
+                else:
+                    max_ucb = -math.inf
+                    ucb_score = -math.inf
+                    log_value = log(node.sims)
+                    for each in node.children:
+                        if each.sims == 0:
+                            ucb_score = math.inf
+                        else:
+                            ucb_score = ((each.score) + (c_value *
+                                                         sqrt((2*log_value)/each.sims)))
+                            # ucb_score = ((each.score) + (c_value *
+                            #                              sqrt(log_value/each.sims)))
+                        if ucb_score > max_ucb:
+                            max_ucb = ucb_score
+                            node = each
         return node
 
     # **********************************************************************************************************************
@@ -142,6 +166,7 @@ class MCTSEPT2(object):
     def run_simulation(self, node):
         # convert fen string back to board object
         board_state = chess.Board(node.state)
+
         for move in range(self.terminal_depth):
 
             board_state.push(random.choice(list(board_state.legal_moves)))
@@ -160,7 +185,6 @@ class MCTSEPT2(object):
             try:
                 pov_score = int(info["score"].white().__str__())
                 score = 1 / (1 + (10 ** -(pov_score / 400)))
-                # print(score)
                 return score  # returns 1 if pov_score > +6382
             except:
                 pov_score = info["score"].white().__str__()
@@ -182,7 +206,6 @@ class MCTSEPT2(object):
             try:
                 pov_score = int(info["score"].black().__str__())
                 score = 1 / (1 + (10 ** -(pov_score / 400)))
-                # print(score)
                 return score  # returns 1 if pov_score > +4120
             except:
                 pov_score = info["score"].black().__str__()
@@ -259,11 +282,25 @@ class MCTSEPT2(object):
         self.run_expansion(
             globals()[str(self.starting_board_state.fen())+str(0)])
 
-        # print("\n")
-        # for pre, _, node in RenderTree(globals()[str(self.starting_board_state.fen())+str(0)]):
-        #     treestr = u"%s%s" % (pre, node.weight)
-        #     print(treestr.ljust(8), node.winsum, node.sims, node.score)
-        # print("\n")
+        mate_info = self.engine.analyse(
+            self.starting_board_state, chess.engine.Limit(time=0.01))
+        if self.original_player:
+            if mate_info["score"].white().__str__()[1] == '+':
+                self.terminal_depth = 0
+                self.lock_depth = True
+            # try:
+            #     if mate_info["score"].white().__str__()[1] == '+':
+            #         self.terminal_depth = 0
+            #         self.lock_depth = True
+            # except:
+            #     print(mate_info["score"].white().__str__())
+        else:
+            if mate_info["score"].black().__str__()[1] == '+':
+                self.terminal_depth = 0
+                self.lock_depth = True
+
+        # print(mate_info["score"].white().__str__())
+        # print(self.terminal_depth)
 
         return globals()[str(self.starting_board_state.fen())+str(0)]
 
@@ -272,12 +309,12 @@ class MCTSEPT2(object):
     def algo_render(self):
         # self.engine.quit()
 
-        # print("\n")
-        # for pre, _, node in RenderTree(globals()[str(self.starting_board_state.fen())+str(0)]):
-        #     treestr = u"%s%s" % (pre, node.weight)
-        #     print(treestr.ljust(8), round(node.winsum, 2),
-        #           node.sims, round(node.score, 2))
-        # print("\n")
+        print("\n")
+        for pre, _, node in RenderTree(globals()[str(self.starting_board_state.fen())+str(0)]):
+            treestr = u"%s%s" % (pre, node.weight)
+            print(treestr.ljust(8), round(node.winsum, 2),
+                  node.sims, round(node.score, 2))
+        print("\n")
 
         # print("Total Advantages/Simulations: " + str(globals()
         #                                        [str(self.starting_board_state.fen())+str(0)].advs) + "/" + str(globals()[str(self.starting_board_state.fen())+str(0)].sims))
