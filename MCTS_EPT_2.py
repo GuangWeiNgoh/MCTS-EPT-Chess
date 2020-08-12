@@ -161,18 +161,23 @@ class MCTSEPT2(object):
                 pov_score = int(info["score"].white().__str__())
                 score = 1 / (1 + (10 ** -(pov_score / 400)))
                 # print(score)
-                return score  # returns 1 if pov_score > +4120
+                return score  # returns 1 if pov_score > +6382
             except:
                 pov_score = info["score"].white().__str__()
-                if pov_score[1] == '+':
-                    return 1.0
+                if pov_score[1] == '+':  # mate in x
+                    # x * 100 to make a difference when normalizing
+                    mate_in = int(pov_score[2:]) * 100
+                    # return value close to 1 depending on x
+                    score = 1 / (1 + (10 ** -((6382-mate_in) / 400)))
+                    return score
+                    # return 1.0
                 else:
-                    # opponent mate in x
-                    # print("Unhandled Score")
-                    # print(pov_score)
-                    # print(board_state)
-                    # print(board_state.fen())
-                    return 0.0
+                    # x * 100 to make a difference when normalizing
+                    mate_in = int(pov_score[2:]) * 100
+                    # return value close to 1 depending on x
+                    score = 1 / (1 + (10 ** -((-6382+mate_in) / 400)))
+                    return score
+                    # return 0.0
         else:
             try:
                 pov_score = int(info["score"].black().__str__())
@@ -181,15 +186,20 @@ class MCTSEPT2(object):
                 return score  # returns 1 if pov_score > +4120
             except:
                 pov_score = info["score"].black().__str__()
-                if pov_score[1] == '+':
-                    return 1.0
+                if pov_score[1] == '+':  # mate in x
+                    # x * 100 to make a difference when normalizing
+                    mate_in = int(pov_score[2:]) * 100
+                    # return value close to 1 depending on x
+                    score = 1 / (1 + (10 ** -((6382-mate_in) / 400)))
+                    return score
+                    # return 1.0
                 else:
-                    # opponent mate in x
-                    # print("Unhandled Score")
-                    # print(pov_score)
-                    # print(board_state)
-                    # print(board_state.fen())
-                    return 0.0
+                    # x * 100 to make a difference when normalizing
+                    mate_in = int(pov_score[2:]) * 100
+                    # return value close to 1 depending on x
+                    score = 1 / (1 + (10 ** -((-6382+mate_in) / 400)))
+                    return score
+                    # return 0.0
 
     # **********************************************************************************************************************
 
