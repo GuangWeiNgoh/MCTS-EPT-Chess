@@ -8,6 +8,7 @@ import datetime
 import streamlit as st
 import cairosvg  # svg to png to animate board
 import MinimaxAlphaBetaPruning
+import random  # random move if opponent engine best move None
 
 from MCTS import MCTS
 from MCTS_EPT import MCTSEPT
@@ -156,7 +157,9 @@ class Playout(object):
         try:
             self.board_state.push(opponent_best_move)
         except:
-            print(opponent_best_move)
+            # random move if opponent engine best move None
+            self.board_state.push(random.choice(
+                list(self.board_state.legal_moves)))
         time.sleep(0.5)  # delay to see board state after mcts
         self.animate_board(opponent_best_move)
         self.update_cp()
