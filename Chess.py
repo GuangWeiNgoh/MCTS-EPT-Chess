@@ -163,7 +163,7 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
     # st.write(move_stats_list, use_container_width=True)
 
     st.header('Monte Carlo Tree JSON')
-    # with open('test.json') as json_file:
+    # with open('tree.json') as json_file:
     #     data = json.load(json_file)
     # data_json = json.dumps(data)
     # st.json(data_json)
@@ -213,33 +213,27 @@ fen = st.text_input(
     'Input FEN', 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
 try:
     board = chess.Board(fen)
-    # board.push_san("Qxf7")
-    # board.push_san("e4")
-    # board.push_san("e5")
-    # board.push(random.choice(list(board.legal_moves)))
+    # Evalutate score using stockfish evaluation
+    engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
+    info = engine.analyse(board, chess.engine.Limit(time=0.1))
+    # info = engine.analyse(board, chess.engine.Limit(depth=20))
+    # info = engine.analyse(board, chess.engine.Limit(depth=20), multipv=4)
+    # print(board.san(info[0]["pv"][0]))
+    # print(board.san(info[1]["pv"][0]))
+    # print(board.san(info[2]["pv"][0]))
+    # print(board.san(info[3]["pv"][0]))
     if board.turn:
         st.text('WHITE to play')
+        st.text('CP: ' + str(info['score']))
     else:
         st.text('BLACK to play')
+        st.text('CP: ' + str(info['score']))
+    engine.quit()  # Exit stockfish engine
     board_svg = chess.svg.board(board=board)
     render_svg(board_svg)
 except:
     st.write('Invalid Fen')
 
-# Evalutate score using stockfish evaluation
-engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
-print("\n")
-print(datetime.datetime.utcnow())
-info = engine.analyse(board, chess.engine.Limit(time=0.1))
-# info = engine.analyse(board, chess.engine.Limit(depth=20))
-print(info['score'])
-# info = engine.analyse(board, chess.engine.Limit(depth=20), multipv=4)
-# print(board.san(info[0]["pv"][0]))
-# print(board.san(info[1]["pv"][0]))
-# print(board.san(info[2]["pv"][0]))
-# print(board.san(info[3]["pv"][0]))
-print(datetime.datetime.utcnow())
-engine.quit()  # Exit stockfish engine
 
 st.sidebar.title("Parameters")
 st.sidebar.text("")
