@@ -184,6 +184,8 @@ class MCTSEPT2(object):
         if self.original_player:
             try:
                 pov_score = int(info["score"].white().__str__())
+                if pov_score > 5000:  # set cp limit to 5000 so that mate score takes precedence
+                    pov_score = 5000
                 score = 1 / (1 + (10 ** -(pov_score / 400)))
                 return score  # returns 1 if pov_score > +6382
             except:
@@ -205,8 +207,10 @@ class MCTSEPT2(object):
         else:
             try:
                 pov_score = int(info["score"].black().__str__())
+                if pov_score > 5000:  # set cp limit to 5000 so that mate score takes precedence
+                    pov_score = 5000
                 score = 1 / (1 + (10 ** -(pov_score / 400)))
-                return score  # returns 1 if pov_score > +4120
+                return score  # returns 1 if pov_score > +6382
             except:
                 pov_score = info["score"].black().__str__()
                 if pov_score[1] == '+':  # mate in x
@@ -285,15 +289,15 @@ class MCTSEPT2(object):
         mate_info = self.engine.analyse(
             self.starting_board_state, chess.engine.Limit(time=0.01))
         if self.original_player:
-            if mate_info["score"].white().__str__()[1] == '+':
-                self.terminal_depth = 0
-                self.lock_depth = True
-            # try:
-            #     if mate_info["score"].white().__str__()[1] == '+':
-            #         self.terminal_depth = 0
-            #         self.lock_depth = True
-            # except:
-            #     print(mate_info["score"].white().__str__())
+            # if mate_info["score"].white().__str__()[1] == '+':
+            #     self.terminal_depth = 0
+            #     self.lock_depth = True
+            try:
+                if mate_info["score"].white().__str__()[1] == '+':
+                    self.terminal_depth = 0
+                    self.lock_depth = True
+            except:
+                print(mate_info["score"].white().__str__())
         else:
             if mate_info["score"].black().__str__()[1] == '+':
                 self.terminal_depth = 0
