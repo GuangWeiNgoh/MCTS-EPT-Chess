@@ -196,12 +196,12 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 
 # try board.pop() for expansion
 # try max() function for selection
-# follow mate in x when found
 # check average time for minimax turn
 # set calc time default similar to minimax turn time
 # simplify selection function (duplicate codes)
 # test without lock depth
 # maybe limit max cp for non mate to 5000?
+# upgrade streamlit to 0.65.0 (inline svg)
 
 # print(Mate(2).score(mate_score=100000))
 # score = 1 / (1 + (10 ** -(6382 / 400)))
