@@ -208,6 +208,13 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 # print(score)
 
 # Streamlit
+st.beta_set_page_config(
+    page_title="MCTS Chess Dashboard",
+    page_icon="♟️",
+    layout="centered",
+    initial_sidebar_state="auto",
+)
+
 st.title('MCTS Chess Dashboard')
 fen = st.text_input(
     'Input FEN', 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
