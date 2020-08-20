@@ -9,6 +9,7 @@ import streamlit as st
 import cairosvg  # svg to png to animate board
 import MinimaxAlphaBetaPruning
 import random  # random move if opponent engine best move None
+import base64  # svg
 
 from MCTS import MCTS
 from MCTS_EPT import MCTSEPT
@@ -54,11 +55,17 @@ class Playout(object):
     def animate_board(self, move):  # save board state to svg then png to display
         board_svg = chess.svg.board(
             board=self.board_state, lastmove=move)
-        # cairosvg.svg2png(board_svg, write_to="board.png",
-        #                  output_width=1600, output_height=1600)
+
+        # print(type(board_svg))
+        # f = open("board.svg", "a")
+        # f.write(board_svg)
+        # f.close()
+        # boardimg = Image.open('board.svg')
+
         cairosvg.svg2png(board_svg, write_to="board.png")
         boardimg = Image.open('board.png')
         globals()['boardholder'].image(boardimg, width=400)
+        # globals()['boardholder'].image(board_svg, width=400)
 
     def update_cp(self):
         info = self.opponent_engine.analyse(
