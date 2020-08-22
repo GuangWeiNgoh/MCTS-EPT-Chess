@@ -124,10 +124,10 @@ class MCTSEPT2(object):
                     if each.sims == 0:
                         ucb_score = math.inf
                     else:
-                        ucb_score = ((each.score) + (c_value *
-                                                     sqrt((2*log_value)/each.sims)))
                         # ucb_score = ((each.score) + (c_value *
-                        #                              sqrt(log_value/each.sims)))
+                        #                              sqrt((2*log_value)/each.sims)))
+                        ucb_score = ((each.score) + (c_value *
+                                                     sqrt(log_value/each.sims)))
                     if ucb_score > max_ucb:
                         max_ucb = ucb_score
                         node = each
@@ -150,10 +150,10 @@ class MCTSEPT2(object):
                         if each.sims == 0:
                             ucb_score = math.inf
                         else:
-                            ucb_score = ((each.score) + (c_value *
-                                                         sqrt((2*log_value)/each.sims)))
                             # ucb_score = ((each.score) + (c_value *
-                            #                              sqrt(log_value/each.sims)))
+                            #                              sqrt((2*log_value)/each.sims)))
+                            ucb_score = ((each.score) + (c_value *
+                                                         sqrt(log_value/each.sims)))
                         if ucb_score > max_ucb:
                             max_ucb = ucb_score
                             node = each
