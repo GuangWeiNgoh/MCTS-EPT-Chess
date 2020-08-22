@@ -5,6 +5,7 @@ import chess
 import chess.engine
 # import chess.svg
 # import chess.pgn
+import chess.polyglot  # opening book
 import time
 import datetime
 import random
@@ -66,6 +67,43 @@ class MCTSEPT2(object):
         d0 = importer.import_(data_json)
         print(RenderTree(d0))
         # https://anycache.readthedocs.io/en/latest/
+
+    # **********************************************************************************************************************
+
+    def opening_expansion(self, node, opening_moves):
+        board_state = chess.Board(node.state)
+        for move in opening_moves:  # add all legal move nodes to tree
+            original_state = board_state.copy()
+            # original_state.push_san(move)
+            original_state.push(move)
+            i = 0
+            while(1):
+                try:
+                    # check if node object exists in global variables
+                    globals()[str(original_state.fen())+str(i)]
+                except:
+                    # create node if does not exist
+                    globals()[str(original_state.fen())+str(i)] = MCTSEPT2Node(state=str(original_state.fen()), key=str(
+                        original_state.fen())+str(i), parent=globals()[node.key], weight=board_state.san(move))
+
+                    # For case where node is expanded and new node is terminal node
+                    if original_state.is_game_over():  # check if it is a terminal node
+                        globals()[str(original_state.fen())+str(i)
+                                  ].termnode = True  # set as terminal node
+                        # set terminal result to false if draw or loss
+                        globals()[str(original_state.fen()) +
+                                  str(i)].termresult = 0.0
+                        if original_state.is_checkmate():  # assign winner only if checkmate
+                            if original_state.turn == self.original_player:
+                                globals()[str(original_state.fen()) +
+                                          str(i)].termresult = 0.0
+                            else:
+                                globals()[str(original_state.fen()) +
+                                          str(i)].termresult = 1.0
+
+                    break
+                else:
+                    i += 1  # increment index if exists
 
     # **********************************************************************************************************************
 
@@ -282,9 +320,23 @@ class MCTSEPT2(object):
         globals()[str(self.starting_board_state.fen())+str(0)] = MCTSEPT2Node(state=str(
             self.starting_board_state.fen()), key=str(self.starting_board_state.fen())+str(0))
 
-        # generate legal moves for starting state
-        self.run_expansion(
-            globals()[str(self.starting_board_state.fen())+str(0)])
+        # check komodo polyglot opening book if move exists
+        with chess.polyglot.open_reader("./OpeningBook/komodo.bin") as reader:
+            opening_moves = []
+            for entry in reader.find_all(self.starting_board_state):
+                opening_moves.append(entry.move)
+                # print(entry.move, entry.weight, entry.learn)
+        if opening_moves:
+            self.opening_expansion(
+                globals()[str(self.starting_board_state.fen())+str(0)], opening_moves)
+        else:
+            # generate legal moves for starting state
+            self.run_expansion(
+                globals()[str(self.starting_board_state.fen())+str(0)])
+
+        # # generate legal moves for starting state
+        # self.run_expansion(
+        #     globals()[str(self.starting_board_state.fen())+str(0)])
 
         mate_info = self.engine.analyse(
             self.starting_board_state, chess.engine.Limit(time=0.01))
