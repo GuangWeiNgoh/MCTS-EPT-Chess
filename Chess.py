@@ -202,6 +202,8 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 # test without lock depth
 # maybe limit max cp for non mate to 5000?
 # upgrade streamlit to 0.65.0 (inline svg)
+# implement static evaluation function
+# select node that minimizes win percentage at opponent depth? (1-each.score at even depth)
 
 # print(Mate(2).score(mate_score=100000))
 # score = 1 / (1 + (10 ** -(6382 / 400)))
@@ -266,7 +268,7 @@ ept_2_root_c_value = st.sidebar.number_input(
 ept_2_c_value = st.sidebar.number_input(
     'UCT exploration constant', 1.0, key='ept_2_c_value')
 terminal_depth_2 = st.sidebar.slider(
-    'Playout terminal depth', 0, 50, 5, key='ept_2_depth')
+    'Playout terminal depth', 0, 50, 3, key='ept_2_depth')
 
 st.text("")
 algo = st.radio("Select Algorithm",
@@ -300,11 +302,14 @@ num_games = st.number_input(
     'Number of games', 1, key='num_games')
 
 opponent_selection = st.selectbox(
-    'Opponent engine', ('Minimax with Alpha-Beta Pruning', 'Stockfish 11'))
+    'Opponent engine', ('Minimax with Alpha-Beta Pruning', 'Irina (1200 Elo)', 'Stockfish 11'))
 
 if opponent_selection == 'Stockfish 11':
     opponent_depth = st.slider(
         'Stockfish search depth', 0, 20, 1, key='stockfish_depth')
+elif opponent_selection == 'Irina (1200 Elo)':
+    opponent_depth = st.slider(
+        'Irina search time', 0, 20, 5, key='irina_depth')
 else:
     opponent_depth = st.slider(
         'Minimax search depth', 0, 20, 4, key='minimax_depth')

@@ -25,8 +25,21 @@ class Playout(object):
         self.opponent = opponent
         self.search_depth = depth
         self.algo_obj = algo_obj  # instance of mcts/mcts-ept
-        self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
+        self.evaluation_engine = chess.engine.SimpleEngine.popen_uci(
             "stockfish.exe")
+        # if opponent == 'Stockfish 11':
+        #     self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
+        #         "stockfish.exe")
+        # self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
+        #     "./Engines/Acqua/acqua.exe")
+        # self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
+        #     "./Engines/Alaric/Alaric707.exe")
+        self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
+            "./Engines/Irina/irina.exe")
+        # if opponent == 'Acqua (800 Elo)':
+        #     self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
+        #         "acqua.exe")
+
         if board.turn:
             self.original_player = True
         else:
@@ -68,7 +81,7 @@ class Playout(object):
         # globals()['boardholder'].image(board_svg, width=400)
 
     def update_cp(self):
-        info = self.opponent_engine.analyse(
+        info = self.evaluation_engine.analyse(
             self.board_state, chess.engine.Limit(time=0.1))
         if self.original_player:
             globals()['cp_score'].text(
@@ -81,7 +94,7 @@ class Playout(object):
         # print(datetime.datetime.utcnow())
         # opponent_engine = chess.engine.SimpleEngine.popen_uci(
         #     "stockfish.exe")
-        info = self.opponent_engine.analyse(
+        info = self.evaluation_engine.analyse(
             self.board_state, chess.engine.Limit(depth=self.search_depth))
         # info = opponent_engine.analyse(
         #     self.board_state, chess.engine.Limit(time=0.005))
@@ -89,6 +102,17 @@ class Playout(object):
         best_move = info["pv"][0]
         # opponent_engine.quit()
         return best_move
+
+    def irina_move(self):
+        # info = self.opponent_engine.analyse(
+        #     self.board_state, chess.engine.Limit(time=self.search_depth))
+        # print(info)
+        # best_move = info["pv"][0]
+        result = self.opponent_engine.play(
+            self.board_state, chess.engine.Limit(time=self.search_depth))
+        # board.push(result.move)
+        return result.move
+        # return best_move
 
     def minimax_move(self):
         # print(datetime.datetime.utcnow())
@@ -159,6 +183,8 @@ class Playout(object):
         # opponent turn
         if self.opponent == 'Stockfish 11':
             opponent_best_move = self.stockfish_move()
+        elif self.opponent == 'Irina (1200 Elo)':
+            opponent_best_move = self.irina_move()
         else:
             opponent_best_move = self.minimax_move()
         try:
