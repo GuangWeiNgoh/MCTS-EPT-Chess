@@ -34,6 +34,7 @@ import base64  # svg
 # import concurrent.futures
 # import threading
 import random
+import StaticEval
 
 from chess.engine import Cp, Mate, MateGiven
 from MCTS import MCTS
@@ -181,6 +182,7 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 # r1bqkbnr/p1pp1ppp/1pn5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4
 # rn2kbn1/2Bppp2/bp4p1/2P5/2BPP2p/p4N1P/PP3PP1/R2QK2R w KQq - 1 14
 # Qa4 Qb3 Bd5 Bxa6 winning
+# rn2kbn1/2Bppp2/bp4p1/2P5/Q1BPP2p/p4N1P/PP3PP1/R3K2R b KQq - 2 14
 # r2q1rk1/pp1n1ppp/2pbpn2/3p4/6b1/1P1P1NP1/PBPNPPBP/R2Q1RK1 w - - 3 9
 # h3 e4 c4 Re1
 # r1bq1rk1/2p1bpp1/p1np1n1p/1p2p3/3PP3/1BP2N1P/PP3PP1/RNBQR1K1 b - - 0 10
@@ -224,7 +226,7 @@ try:
     board = chess.Board(fen)
     # Evalutate score using stockfish evaluation
     engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
-    info = engine.analyse(board, chess.engine.Limit(time=0.1))
+    info = engine.analyse(board, chess.engine.Limit(depth=1))
     # info = engine.analyse(board, chess.engine.Limit(depth=20))
     # info = engine.analyse(board, chess.engine.Limit(depth=20), multipv=4)
     # print(board.san(info[0]["pv"][0]))
@@ -243,10 +245,12 @@ try:
 except:
     st.write('Invalid Fen')
 
+stat_eval = StaticEval.evaluate_board(board)
+print(stat_eval)
 
 st.sidebar.title("Parameters")
 st.sidebar.text("")
-calc_time = st.sidebar.number_input('Calculation time (seconds)', 1)
+calc_time = st.sidebar.number_input('Calculation time (seconds)', 5)
 
 st.sidebar.subheader("MCTS")
 c_value = st.sidebar.number_input(
@@ -264,11 +268,11 @@ terminal_depth = st.sidebar.slider(
 
 st.sidebar.subheader("MCTS-EPT (CP Normalized)")
 ept_2_root_c_value = st.sidebar.number_input(
-    'UCT exploration constant @ root', 3.0, key='ept_2_root_c_value')
+    'UCT exploration constant @ root', 0.8, key='ept_2_root_c_value')
 ept_2_c_value = st.sidebar.number_input(
-    'UCT exploration constant', 1.4, key='ept_2_c_value')
+    'UCT exploration constant', 0.8, key='ept_2_c_value')
 terminal_depth_2 = st.sidebar.slider(
-    'Playout terminal depth', 0, 50, 3, key='ept_2_depth')
+    'Playout terminal depth', 0, 50, 5, key='ept_2_depth')
 
 st.text("")
 algo = st.radio("Select Algorithm",
