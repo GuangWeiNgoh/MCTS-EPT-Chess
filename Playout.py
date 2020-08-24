@@ -10,6 +10,7 @@ import cairosvg  # svg to png to animate board
 import MinimaxAlphaBetaPruning
 import random  # random move if opponent engine best move None
 import base64  # svg
+import StaticEval
 
 from MCTS import MCTS
 from MCTS_EPT import MCTSEPT
@@ -82,13 +83,14 @@ class Playout(object):
 
     def update_cp(self):
         info = self.evaluation_engine.analyse(
-            self.board_state, chess.engine.Limit(time=0.1))
+            self.board_state, chess.engine.Limit(depth=1))
+        stat_eval = StaticEval.evaluate_board(self.board_state)
         if self.original_player:
             globals()['cp_score'].text(
-                'CP: ' + info["score"].white().__str__())
+                'Stockfish Eval: ' + info["score"].white().__str__() + '                 Static Eval: ' + str(stat_eval))
         else:
             globals()['cp_score'].text(
-                'CP: ' + info["score"].black().__str__())
+                'CP: ' + info["score"].black().__str__() + '                 Stat Eval: ' + str(-stat_eval))
 
     def stockfish_move(self):
         # print(datetime.datetime.utcnow())
