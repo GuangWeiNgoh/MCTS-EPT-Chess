@@ -13,6 +13,7 @@ import ast
 import json
 import math
 import sys
+import StaticEval  # static evaluation function
 from copy import deepcopy
 # from treelib import Node, Tree
 # from graphviz import Digraph
@@ -154,6 +155,12 @@ class MCTSEPT2(object):
                             #                              sqrt((2*log_value)/each.sims)))
                             ucb_score = ((each.score) + (c_value *
                                                          sqrt(log_value/each.sims)))
+                            # if each.depth % 2 == 0:  # select least favourable node at opponent depth?
+                            #     ucb_score = ((1-each.score) + (c_value *
+                            #                                    sqrt(log_value/each.sims)))
+                            # else:
+                            #     ucb_score = ((each.score) + (c_value *
+                            #                                  sqrt(log_value/each.sims)))
                         if ucb_score > max_ucb:
                             max_ucb = ucb_score
                             node = each
@@ -201,24 +208,9 @@ class MCTSEPT2(object):
 
     # **********************************************************************************************************************
 
-    def run_simulation(self, node):
-        # convert fen string back to board object
-        board_state = chess.Board(node.state)
-
-        for move in range(self.terminal_depth):
-
-            board_state.push(random.choice(list(board_state.legal_moves)))
-
-            if board_state.is_game_over():
-
-                if board_state.is_checkmate():  # assign winner only if checkmate
-                    if board_state.turn == self.original_player:
-                        return 0.0
-                    else:
-                        return 1.0
-                return 0.0  # is draw considered a loss for mcts-ept?
-
-        info = self.engine.analyse(board_state, chess.engine.Limit(time=0.01))
+    def stockfish_eval(self, board_state):
+        # info = self.engine.analyse(board_state, chess.engine.Limit(time=0.01))
+        info = self.engine.analyse(board_state, chess.engine.Limit(depth=1))
         if self.original_player:
             try:
                 pov_score = int(info["score"].white().__str__())
@@ -265,6 +257,38 @@ class MCTSEPT2(object):
                     score = 1 / (1 + (10 ** -((-6382+mate_in) / 400)))
                     return score
                     # return 0.0
+
+    # **********************************************************************************************************************
+
+    def run_simulation(self, node):
+        # convert fen string back to board object
+        board_state = chess.Board(node.state)
+
+        for move in range(self.terminal_depth):
+
+            board_state.push(random.choice(list(board_state.legal_moves)))
+
+            if board_state.is_game_over():
+
+                if board_state.is_checkmate():  # assign winner only if checkmate
+                    if board_state.turn == self.original_player:
+                        return 0.0
+                    else:
+                        return 1.0
+                return 0.0  # is draw considered a loss for mcts-ept?
+        score = self.stockfish_eval(board_state)
+        # if self.lock_depth == True:
+        #     # use stockfish when mate score found
+        #     score = self.stockfish_eval(board_state)
+        # else:
+        #     stat_eval = StaticEval.evaluate_board(
+        #         board_state)  # use static eval otherwise
+        #     if self.original_player:
+        #         score = 1 / (1 + (10 ** -(stat_eval / 400)))
+        #     else:
+        #         score = 1 / (1 + (10 ** -((-stat_eval) / 400)))
+
+        return score
 
     # **********************************************************************************************************************
 
@@ -339,7 +363,7 @@ class MCTSEPT2(object):
         #     globals()[str(self.starting_board_state.fen())+str(0)])
 
         mate_info = self.engine.analyse(
-            self.starting_board_state, chess.engine.Limit(time=0.01))
+            self.starting_board_state, chess.engine.Limit(depth=1))
         if self.original_player:
             # if mate_info["score"].white().__str__()[1] == '+':
             #     self.terminal_depth = 0
