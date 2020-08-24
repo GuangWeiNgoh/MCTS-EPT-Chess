@@ -188,6 +188,9 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 # r1bq1rk1/2p1bpp1/p1np1n1p/1p2p3/3PP3/1BP2N1P/PP3PP1/RNBQR1K1 b - - 0 10
 # Re8 Bb7 Bd7 Na5
 
+# black in check
+# rn2kbn1/2BppB2/bp4p1/2P5/3PP2p/p4N1P/PP3PP1/R2QK2R b KQq - 0 14
+
 # Mate in 3:
 # r5rk/5p1p/5R2/4B3/8/8/7P/7K w q - 0 1
 # r5rk/7p/R4p2/4B3/8/8/7P/7K w q - 0 2
@@ -247,6 +250,8 @@ except:
 
 stat_eval = StaticEval.evaluate_board(board)
 print(stat_eval)
+print(int('-123')+23)
+# print(int('#+3'))
 
 st.sidebar.title("Parameters")
 st.sidebar.text("")
@@ -268,9 +273,9 @@ terminal_depth = st.sidebar.slider(
 
 st.sidebar.subheader("MCTS-EPT (CP Normalized)")
 ept_2_root_c_value = st.sidebar.number_input(
-    'UCT exploration constant @ root', 0.8, key='ept_2_root_c_value')
+    'UCT exploration constant @ root', 3.0, key='ept_2_root_c_value')
 ept_2_c_value = st.sidebar.number_input(
-    'UCT exploration constant', 0.8, key='ept_2_c_value')
+    'UCT exploration constant', 1.4, key='ept_2_c_value')
 terminal_depth_2 = st.sidebar.slider(
     'Playout terminal depth', 0, 50, 5, key='ept_2_depth')
 
