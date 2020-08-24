@@ -53,7 +53,6 @@ class MCTSEPT2(object):
         self.original_player = kwargs.get('player', None)
         self.engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
         self.lock_depth = False  # lock depth to 1 when mate score is found
-        print("EPT 2")
 
     # **********************************************************************************************************************
 
@@ -68,6 +67,72 @@ class MCTSEPT2(object):
         d0 = importer.import_(data_json)
         print(RenderTree(d0))
         # https://anycache.readthedocs.io/en/latest/
+
+    # **********************************************************************************************************************
+
+    def run_selection(self, node):
+        if self.lock_depth == True:
+            if node.depth == 0:  # use root_C for selection from root node
+                c_value = self.root_C
+            else:
+                c_value = self.C
+
+            if node.sims == 0:  # only for root node
+                node = node.children[0]
+            else:
+                max_ucb = -math.inf
+                ucb_score = -math.inf
+                log_value = log(node.sims)
+                for each in node.children:
+                    if each.sims == 0:
+                        ucb_score = math.inf
+                    else:
+                        # UCT
+                        ucb_score = ((each.score) + (c_value *
+                                                     sqrt((2*log_value)/each.sims)))
+                        # UCB1
+                        # ucb_score = ((each.score) + (c_value *
+                        #                              sqrt(log_value/each.sims)))
+                        # UCB1-Tuned
+                        # variance = each.score * (1 - each.score)
+                        # ucb_score = each.score + c_value * sqrt((log_value/each.sims) * min(1/4, (each.score * (1 - each.score) +
+                        #                                                                           sqrt(2*log_value/each.sims))))
+                    if ucb_score > max_ucb:
+                        max_ucb = ucb_score
+                        node = each
+        else:
+            # select child that maximizes UCB1
+            # traverse down until no children left (leaf node)
+            while not(node.is_leaf):
+                if node.depth == 0:  # use root_C for selection from root node
+                    c_value = self.root_C
+                else:
+                    c_value = self.C
+
+                if node.sims == 0:  # only for root node
+                    node = node.children[0]
+                else:
+                    max_ucb = -math.inf
+                    ucb_score = -math.inf
+                    log_value = log(node.sims)
+                    for each in node.children:
+                        if each.sims == 0:
+                            ucb_score = math.inf
+                        else:
+                            # UCT
+                            ucb_score = ((each.score) + (c_value *
+                                                         sqrt((2*log_value)/each.sims)))
+                            # UCB1
+                            # ucb_score = ((each.score) + (c_value *
+                            #                              sqrt(log_value/each.sims)))
+                            # UCB1-Tuned
+                            # variance = each.score * (1 - each.score)
+                            # ucb_score = each.score + c_value * sqrt((log_value/each.sims) * min(1/4, (each.score * (1 - each.score) +
+                            #                                                                           sqrt(2*log_value/each.sims))))
+                        if ucb_score > max_ucb:
+                            max_ucb = ucb_score
+                            node = each
+        return node
 
     # **********************************************************************************************************************
 
@@ -108,70 +173,70 @@ class MCTSEPT2(object):
 
     # **********************************************************************************************************************
 
-    def run_selection(self, node):
-        if self.lock_depth == True:
-            if node.depth == 0:  # use root_C for selection from root node
-                c_value = self.root_C
-            else:
-                c_value = self.C
+    def move_ordering(self, board):
+        # print(datetime.datetime.utcnow())
+        move_list = list(board.legal_moves)
+        eval_list = []
+        for move in move_list:
+            board.push(move)
+            score = self.stockfish_eval(board)
+            # score = StaticEval.evaluate_board(board)
+            eval_list.append((move, score))
+            board.pop()
+        import operator
+        ordered_list = sorted(
+            eval_list, key=operator.itemgetter(1), reverse=True)
+        # print(datetime.datetime.utcnow())
+        return ordered_list
+        # for move in ordered_list[:5]:
+        #     print(move[0])
 
-            if node.sims == 0:  # only for root node
-                node = node.children[0]
-            else:
-                max_ucb = -math.inf
-                ucb_score = -math.inf
-                log_value = log(node.sims)
-                for each in node.children:
-                    if each.sims == 0:
-                        ucb_score = math.inf
-                    else:
-                        # ucb_score = ((each.score) + (c_value *
-                        #                              sqrt((2*log_value)/each.sims)))
-                        ucb_score = ((each.score) + (c_value *
-                                                     sqrt(log_value/each.sims)))
-                    if ucb_score > max_ucb:
-                        max_ucb = ucb_score
-                        node = each
-        else:
-            # select child that maximizes UCB1
-            # traverse down until no children left (leaf node)
-            while not(node.is_leaf):
-                if node.depth == 0:  # use root_C for selection from root node
-                    c_value = self.root_C
-                else:
-                    c_value = self.C
+    # **********************************************************************************************************************
 
-                if node.sims == 0:  # only for root node
-                    node = node.children[0]
+    def ordered_expansion(self, node):
+        board_state = chess.Board(node.state)
+
+        # order legal moves with stockfish eval
+        ordered_list = self.move_ordering(board_state)
+        for move in ordered_list[:8]:  # add top 5 legal move nodes to tree
+            original_state = board_state.copy()
+            # original_state.push_san(move)
+            original_state.push(move[0])
+            i = 0
+            # print(type(move[0]))
+            while(1):
+                try:
+                    # check if node object exists in global variables
+                    globals()[str(original_state.fen())+str(i)]
+                except:
+                    # create node if does not exist
+                    globals()[str(original_state.fen())+str(i)] = MCTSEPT2Node(state=str(original_state.fen()), key=str(
+                        original_state.fen())+str(i), parent=globals()[node.key], weight=board_state.san(move[0]))
+
+                    # For case where node is expanded and new node is terminal node
+                    if original_state.is_game_over():  # check if it is a terminal node
+                        globals()[str(original_state.fen())+str(i)
+                                  ].termnode = True  # set as terminal node
+                        # set terminal result to false if draw or loss
+                        globals()[str(original_state.fen()) +
+                                  str(i)].termresult = 0.0
+                        if original_state.is_checkmate():  # assign winner only if checkmate
+                            if original_state.turn == self.original_player:
+                                globals()[str(original_state.fen()) +
+                                          str(i)].termresult = 0.0
+                            else:
+                                globals()[str(original_state.fen()) +
+                                          str(i)].termresult = 1.0
+
+                    break
                 else:
-                    max_ucb = -math.inf
-                    ucb_score = -math.inf
-                    log_value = log(node.sims)
-                    for each in node.children:
-                        if each.sims == 0:
-                            ucb_score = math.inf
-                        else:
-                            # ucb_score = ((each.score) + (c_value *
-                            #                              sqrt((2*log_value)/each.sims)))
-                            ucb_score = ((each.score) + (c_value *
-                                                         sqrt(log_value/each.sims)))
-                            # if each.depth % 2 == 0:  # select least favourable node at opponent depth?
-                            #     ucb_score = ((1-each.score) + (c_value *
-                            #                                    sqrt(log_value/each.sims)))
-                            # else:
-                            #     ucb_score = ((each.score) + (c_value *
-                            #                                  sqrt(log_value/each.sims)))
-                        if ucb_score > max_ucb:
-                            max_ucb = ucb_score
-                            node = each
-        return node
+                    i += 1  # increment index if exists
 
     # **********************************************************************************************************************
 
     def run_expansion(self, node):
         board_state = chess.Board(node.state)
 
-        # move_list = self.get_move_list(board_state)
         move_list = list(board_state.legal_moves)
         for move in move_list:  # add all legal move nodes to tree
             original_state = board_state.copy()
@@ -355,12 +420,8 @@ class MCTSEPT2(object):
                 globals()[str(self.starting_board_state.fen())+str(0)], opening_moves)
         else:
             # generate legal moves for starting state
-            self.run_expansion(
+            self.ordered_expansion(
                 globals()[str(self.starting_board_state.fen())+str(0)])
-
-        # # generate legal moves for starting state
-        # self.run_expansion(
-        #     globals()[str(self.starting_board_state.fen())+str(0)])
 
         mate_info = self.engine.analyse(
             self.starting_board_state, chess.engine.Limit(depth=1))
