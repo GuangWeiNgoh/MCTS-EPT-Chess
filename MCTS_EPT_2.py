@@ -198,7 +198,7 @@ class MCTSEPT2(object):
 
         # order legal moves with stockfish eval
         ordered_list = self.move_ordering(board_state)
-        for move in ordered_list[:8]:  # add top 5 legal move nodes to tree
+        for move in ordered_list[:5]:  # add top 5 legal move nodes to tree
             original_state = board_state.copy()
             # original_state.push_san(move)
             original_state.push(move[0])
