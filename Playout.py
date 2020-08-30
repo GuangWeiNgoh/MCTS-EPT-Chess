@@ -35,8 +35,12 @@ class Playout(object):
         #     "./Engines/Acqua/acqua.exe")
         # self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
         #     "./Engines/Alaric/Alaric707.exe")
+        # self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
+        #     "./Engines/Irina/irina.exe")
+        # self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
+        #     "./Engines/Cdrill/CDrill_1800_Build_4.exe")
         self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
-            "./Engines/Irina/irina.exe")
+            "./Engines/Clarabit/clarabit_100_x32_win.exe")
         # if opponent == 'Acqua (800 Elo)':
         #     self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
         #         "acqua.exe")
