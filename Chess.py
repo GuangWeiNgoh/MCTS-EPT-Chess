@@ -277,7 +277,7 @@ ept_2_root_c_value = st.sidebar.number_input(
 ept_2_c_value = st.sidebar.number_input(
     'UCT exploration constant', 0.8, key='ept_2_c_value')
 terminal_depth_2 = st.sidebar.slider(
-    'Playout terminal depth', 0, 50, 3, key='ept_2_depth')
+    'Playout terminal depth', 0, 50, 4, key='ept_2_depth')
 
 st.text("")
 algo = st.radio("Select Algorithm",

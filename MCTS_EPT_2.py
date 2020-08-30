@@ -52,7 +52,7 @@ class MCTSEPT2(object):
         self.root_C = kwargs.get('root_C', 8.4)
         self.original_player = kwargs.get('player', None)
         self.engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
-        self.lock_depth = True  # lock depth to 1 when mate score is found
+        self.lock_depth = False  # lock depth to 1 when mate score is found
 
     # **********************************************************************************************************************
 
@@ -152,7 +152,7 @@ class MCTSEPT2(object):
                 # score = StaticEval.evaluate_board(board)
             else:
                 score = 1-(self.stockfish_eval(board))
-                # score = 1-(StaticEval.evaluate_board(board))
+                # score = -(StaticEval.evaluate_board(board))
             eval_list.append((move, score))
             board.pop()
         import operator
@@ -249,7 +249,7 @@ class MCTSEPT2(object):
 
     def stockfish_eval(self, board_state):
         # info = self.engine.analyse(board_state, chess.engine.Limit(time=0.01))
-        info = self.engine.analyse(board_state, chess.engine.Limit(depth=1))
+        info = self.engine.analyse(board_state, chess.engine.Limit(depth=4))
         if self.original_player:
             try:
                 pov_score = int(info["score"].white().__str__())
@@ -364,21 +364,26 @@ class MCTSEPT2(object):
         elif(selected_node.termnode == True):  # If terminal node is reselected by UCB1
             result = selected_node.termresult
 
-        elif(selected_node.sims == (self.calc_seconds*20) or selected_node.sims == (self.calc_seconds*40) or selected_node.sims == (self.calc_seconds*60)):
+        elif(selected_node.sims == (self.calc_seconds*20) or selected_node.sims == (self.calc_seconds*40) or selected_node.sims == (self.calc_seconds*60) or selected_node.sims == (self.calc_seconds*80)):
             # expand depth at respective intervals
             for node in LevelOrderIter(selected_node):
                 if selected_node.sims == (self.calc_seconds*20):
                     if node.depth == 2:
                         break
                     if node.is_leaf:
-                        self.ordered_expansion(node, 5)
+                        self.ordered_expansion(node, 1)
                 elif selected_node.sims == (self.calc_seconds*40):
                     if node.depth == 3:
                         break
                     if node.is_leaf:
-                        self.ordered_expansion(node, 3)
+                        self.ordered_expansion(node, 1)
                 elif selected_node.sims == (self.calc_seconds*60):
                     if node.depth == 4:
+                        break
+                    if node.is_leaf:
+                        self.ordered_expansion(node, 1)
+                elif selected_node.sims == (self.calc_seconds*80):
+                    if node.depth == 5:
                         break
                     if node.is_leaf:
                         self.ordered_expansion(node, 1)
@@ -419,6 +424,7 @@ class MCTSEPT2(object):
             opening_moves = []
             for entry in reader.find_all(self.starting_board_state):
                 opening_moves.append(entry.move)
+                break
                 # print(entry.move, entry.weight, entry.learn)
         if opening_moves:
             self.opening_expansion(
@@ -462,11 +468,11 @@ class MCTSEPT2(object):
                   node.sims, round(node.score, 2))
         print("\n")
 
-        # print("Total Advantages/Simulations: " + str(globals()
-        #                                        [str(self.starting_board_state.fen())+str(0)].advs) + "/" + str(globals()[str(self.starting_board_state.fen())+str(0)].sims))
-        # print("Total Win Rate: " +
-        #       str(round(globals()[str(self.starting_board_state.fen())+str(0)].score*100, 2)) + "%")
-        # print("\n")
+        print("Total Wins/Simulations: " + str(globals()
+                                               [str(self.starting_board_state.fen())+str(0)].winsum) + "/" + str(globals()[str(self.starting_board_state.fen())+str(0)].sims))
+        print("Total Win Probablity: " +
+              str(round(globals()[str(self.starting_board_state.fen())+str(0)].score*100, 2)) + "%")
+        print("\n")
 
         weight_list = []
         winsim_list = []
