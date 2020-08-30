@@ -304,11 +304,17 @@ class MCTSEPT2(object):
         board_state = chess.Board(node.state)
 
         for move in range(self.terminal_depth):
-
-            board_state.push(random.choice(list(board_state.legal_moves)))
+            if node.children:
+                # print(len(node.children))
+                node = node.children[random.randint(0, len(node.children)-1)]
+                # print(node.weight)
+                # print('Directed')
+                board_state.push_san(node.weight)
+            else:
+                # print('Random')
+                board_state.push(random.choice(list(board_state.legal_moves)))
 
             if board_state.is_game_over():
-
                 if board_state.is_checkmate():  # assign winner only if checkmate
                     if board_state.turn == self.original_player:
                         return 0.0
@@ -420,7 +426,7 @@ class MCTSEPT2(object):
         else:
             # generate legal moves for starting state
             self.ordered_expansion(
-                globals()[str(self.starting_board_state.fen())+str(0)], 5)
+                globals()[str(self.starting_board_state.fen())+str(0)], 8)
 
         mate_info = self.engine.analyse(
             self.starting_board_state, chess.engine.Limit(depth=1))
