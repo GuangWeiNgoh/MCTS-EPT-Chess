@@ -18,7 +18,7 @@ from copy import deepcopy
 # from treelib import Node, Tree
 # from graphviz import Digraph
 from MCTS_EPT_2_Node import MCTSEPT2Node
-from anytree import NodeMixin, RenderTree
+from anytree import NodeMixin, RenderTree, LevelOrderIter
 from pprint import pprint
 from collections import OrderedDict
 from anytree.exporter import DictExporter
@@ -166,12 +166,12 @@ class MCTSEPT2(object):
 
     # **********************************************************************************************************************
 
-    def ordered_expansion(self, node):
+    def ordered_expansion(self, node, count):
         board_state = chess.Board(node.state)
 
         # order legal moves with stockfish eval
         ordered_list = self.move_ordering(board_state, node.depth)
-        for move in ordered_list[:5]:  # add top 5 legal move nodes to tree
+        for move in ordered_list[:count]:  # add top 5 legal move nodes to tree
             # for move in ordered_list:
             original_state = board_state.copy()
             # original_state.push_san(move)
@@ -359,10 +359,28 @@ class MCTSEPT2(object):
             result = selected_node.termresult
 
         elif(selected_node.sims == (self.calc_seconds*20) or selected_node.sims == (self.calc_seconds*40) or selected_node.sims == (self.calc_seconds*60)):
-            self.ordered_expansion(selected_node)
+            # expand depth at respective intervals
+            for node in LevelOrderIter(selected_node):
+                if selected_node.sims == (self.calc_seconds*20):
+                    if node.depth == 2:
+                        break
+                    if node.is_leaf:
+                        self.ordered_expansion(node, 5)
+                elif selected_node.sims == (self.calc_seconds*40):
+                    if node.depth == 3:
+                        break
+                    if node.is_leaf:
+                        self.ordered_expansion(node, 3)
+                elif selected_node.sims == (self.calc_seconds*60):
+                    if node.depth == 4:
+                        break
+                    if node.is_leaf:
+                        self.ordered_expansion(node, 1)
+            # run sim after expansion
             result = self.run_simulation(selected_node)
 
         else:
+            # run sim without expansion when not at intervals
             result = self.run_simulation(selected_node)
         # else:
         #     # run expansion if node has been simulated before
@@ -402,7 +420,7 @@ class MCTSEPT2(object):
         else:
             # generate legal moves for starting state
             self.ordered_expansion(
-                globals()[str(self.starting_board_state.fen())+str(0)])
+                globals()[str(self.starting_board_state.fen())+str(0)], 5)
 
         mate_info = self.engine.analyse(
             self.starting_board_state, chess.engine.Limit(depth=1))
