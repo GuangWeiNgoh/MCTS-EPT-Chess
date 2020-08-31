@@ -303,19 +303,22 @@ class MCTSEPT2(object):
         # convert fen string back to board object
         board_state = chess.Board(node.state)
 
-        while(node.children):
-            # print(len(node.children))
-            node = node.children[random.randint(0, len(node.children)-1)]
-            # print(node.weight)
-            # print('Directed')
-            board_state.push_san(node.weight)
-            if board_state.is_game_over():
-                if board_state.is_checkmate():  # assign winner only if checkmate
-                    if board_state.turn == self.original_player:
-                        return 0.0
-                    else:
-                        return 1.0
-                return 0.0  # is draw considered a loss for mcts-ept?
+        if self.lock_depth == True:
+            score = self.stockfish_eval(board_state)
+        else:
+            while(node.children):
+                # print(len(node.children))
+                node = node.children[random.randint(0, len(node.children)-1)]
+                # print(node.weight)
+                # print('Directed')
+                board_state.push_san(node.weight)
+                if board_state.is_game_over():
+                    if board_state.is_checkmate():  # assign winner only if checkmate
+                        if board_state.turn == self.original_player:
+                            return 0.0
+                        else:
+                            return 1.0
+                    return 0.0  # is draw considered a loss for mcts-ept?
 
         # for move in range(self.terminal_depth):
         #     if node.children:
@@ -379,31 +382,47 @@ class MCTSEPT2(object):
         elif(selected_node.termnode == True):  # If terminal node is reselected by UCB1
             result = selected_node.termresult
 
-        elif(selected_node.sims == (self.calc_seconds*20) or selected_node.sims == (self.calc_seconds*40) or selected_node.sims == (self.calc_seconds*60) or selected_node.sims == (self.calc_seconds*80)):
+        elif(selected_node.sims == (self.calc_seconds*0) or selected_node.sims == (self.calc_seconds*5) or selected_node.sims == (self.calc_seconds*10) or selected_node.sims == (self.calc_seconds*15)):
             # expand depth at respective intervals
             for node in LevelOrderIter(selected_node):
-                if selected_node.sims == (self.calc_seconds*20):
+                if selected_node.sims == (self.calc_seconds*0):
                     if node.depth == 2:
                         break
                     if node.is_leaf:
-                        self.ordered_expansion(node, 1)
-                elif selected_node.sims == (self.calc_seconds*40):
+                        self.ordered_expansion(node, 3)
+                elif selected_node.sims == (self.calc_seconds*5):
                     if node.depth == 3:
                         break
                     if node.is_leaf:
-                        self.ordered_expansion(node, 1)
-                elif selected_node.sims == (self.calc_seconds*60):
+                        self.ordered_expansion(node, 2)
+                elif selected_node.sims == (self.calc_seconds*10):
                     if node.depth == 4:
                         break
                     if node.is_leaf:
                         self.ordered_expansion(node, 1)
-                elif selected_node.sims == (self.calc_seconds*80):
+                elif selected_node.sims == (self.calc_seconds*15):
                     if node.depth == 5:
                         break
                     if node.is_leaf:
                         self.ordered_expansion(node, 1)
             # run sim after expansion
             result = self.run_simulation(selected_node)
+
+        # elif(selected_node.sims == (self.calc_seconds*0) or selected_node.sims == (self.calc_seconds*10)):
+        #     # expand depth at respective intervals
+        #     for node in LevelOrderIter(selected_node):
+        #         if selected_node.sims == (self.calc_seconds*0):
+        #             if node.depth == 2:
+        #                 break
+        #             if node.is_leaf:
+        #                 self.ordered_expansion(node, 5)
+        #         elif selected_node.sims == (self.calc_seconds*10):
+        #             if node.depth == 3:
+        #                 break
+        #             if node.is_leaf:
+        #                 self.ordered_expansion(node, 3)
+        #     # run sim after expansion
+        #     result = self.run_simulation(selected_node)
 
         else:
             # run sim without expansion when not at intervals
@@ -450,7 +469,7 @@ class MCTSEPT2(object):
                 globals()[str(self.starting_board_state.fen())+str(0)], 8)
 
         mate_info = self.engine.analyse(
-            self.starting_board_state, chess.engine.Limit(depth=1))
+            self.starting_board_state, chess.engine.Limit(depth=3))
         if self.original_player:
             # if mate_info["score"].white().__str__()[1] == '+':
             #     self.terminal_depth = 0
@@ -459,10 +478,17 @@ class MCTSEPT2(object):
                 if mate_info["score"].white().__str__()[1] == '+':
                     self.terminal_depth = 0
                     self.lock_depth = True
+                # lock depth when high advantage, extra moves wash out meaning
+                elif int(mate_info["score"].white().__str__()) > 2000 and int(mate_info["score"].white().__str__()) > 6382:
+                    self.terminal_depth = 0
+                    self.lock_depth = True
             except:
                 print(mate_info["score"].white().__str__())
         else:
             if mate_info["score"].black().__str__()[1] == '+':
+                self.terminal_depth = 0
+                self.lock_depth = True
+            elif int(mate_info["score"].black().__str__()) > 2000 and int(mate_info["score"].black().__str__()) > 6382:
                 self.terminal_depth = 0
                 self.lock_depth = True
 
