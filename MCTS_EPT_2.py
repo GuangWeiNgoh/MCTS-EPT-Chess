@@ -303,17 +303,12 @@ class MCTSEPT2(object):
         # convert fen string back to board object
         board_state = chess.Board(node.state)
 
-        for move in range(self.terminal_depth):
-            if node.children:
-                # print(len(node.children))
-                node = node.children[random.randint(0, len(node.children)-1)]
-                # print(node.weight)
-                # print('Directed')
-                board_state.push_san(node.weight)
-            else:
-                # print('Random')
-                board_state.push(random.choice(list(board_state.legal_moves)))
-
+        while(node.children):
+            # print(len(node.children))
+            node = node.children[random.randint(0, len(node.children)-1)]
+            # print(node.weight)
+            # print('Directed')
+            board_state.push_san(node.weight)
             if board_state.is_game_over():
                 if board_state.is_checkmate():  # assign winner only if checkmate
                     if board_state.turn == self.original_player:
@@ -321,6 +316,26 @@ class MCTSEPT2(object):
                     else:
                         return 1.0
                 return 0.0  # is draw considered a loss for mcts-ept?
+
+        # for move in range(self.terminal_depth):
+        #     if node.children:
+        #         # print(len(node.children))
+        #         node = node.children[random.randint(0, len(node.children)-1)]
+        #         # print(node.weight)
+        #         # print('Directed')
+        #         board_state.push_san(node.weight)
+        #     else:
+        #         # print('Random')
+        #         board_state.push(random.choice(list(board_state.legal_moves)))
+
+        #     if board_state.is_game_over():
+        #         if board_state.is_checkmate():  # assign winner only if checkmate
+        #             if board_state.turn == self.original_player:
+        #                 return 0.0
+        #             else:
+        #                 return 1.0
+        #         return 0.0  # is draw considered a loss for mcts-ept?
+
         score = self.stockfish_eval(board_state)
         # if self.lock_depth == True:
         #     # use stockfish when mate score found

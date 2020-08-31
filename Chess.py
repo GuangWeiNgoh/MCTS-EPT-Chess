@@ -229,7 +229,7 @@ try:
     board = chess.Board(fen)
     # Evalutate score using stockfish evaluation
     engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
-    info = engine.analyse(board, chess.engine.Limit(depth=1))
+    info = engine.analyse(board, chess.engine.Limit(depth=3))
     # info = engine.analyse(board, chess.engine.Limit(depth=20))
     # info = engine.analyse(board, chess.engine.Limit(depth=20), multipv=4)
     # print(board.san(info[0]["pv"][0]))

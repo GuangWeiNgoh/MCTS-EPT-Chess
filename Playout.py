@@ -35,12 +35,12 @@ class Playout(object):
         #     "./Engines/Acqua/acqua.exe")
         # self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
         #     "./Engines/Alaric/Alaric707.exe")
-        # self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
-        #     "./Engines/Irina/irina.exe")
+        self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
+            "./Engines/Irina/irina.exe")
         # self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
         #     "./Engines/Cdrill/CDrill_1800_Build_4.exe")
-        self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
-            "./Engines/Clarabit/clarabit_100_x32_win.exe")
+        # self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
+        #     "./Engines/Clarabit/clarabit_100_x32_win.exe")
         # if opponent == 'Acqua (800 Elo)':
         #     self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
         #         "acqua.exe")
@@ -87,7 +87,7 @@ class Playout(object):
 
     def update_cp(self):
         info = self.evaluation_engine.analyse(
-            self.board_state, chess.engine.Limit(depth=1))
+            self.board_state, chess.engine.Limit(depth=3))
         stat_eval = StaticEval.evaluate_board(self.board_state)
         if self.original_player:
             globals()['cp_score'].text(
