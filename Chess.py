@@ -18,6 +18,7 @@ import chess
 import chess.engine
 import chess.svg
 import chess.pgn
+# import chess.syzygy  # endgame tablebases
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -248,10 +249,14 @@ try:
 except:
     st.write('Invalid Fen')
 
-stat_eval = StaticEval.evaluate_board(board)
-print(stat_eval)
-print(int('-123')+23)
-# print(int('#+3'))
+# with chess.syzygy.open_tablebase("syzygy/3-4-5") as tablebase:
+#     board = chess.Board("8/2K5/4B3/3N4/8/8/4k3/8 b - - 0 1")
+#     # board = chess.Board(
+#     #     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+#     print(tablebase.get_wdl(board))
+#     print(tablebase.get_dtz(board))
+#     # print(tablebase.probe_wdl(board))
+#     # print(tablebase.probe_dtz(board))
 
 st.sidebar.title("Parameters")
 st.sidebar.text("")
