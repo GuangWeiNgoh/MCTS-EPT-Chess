@@ -19,3 +19,4 @@ Include
 pyvenv.cfg
 requirements.txt
 Engines/
+syzygy/
