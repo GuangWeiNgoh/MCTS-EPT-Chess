@@ -249,7 +249,7 @@ class MCTSEPT2(object):
 
     def stockfish_eval(self, board_state):
         # info = self.engine.analyse(board_state, chess.engine.Limit(time=0.01))
-        info = self.engine.analyse(board_state, chess.engine.Limit(depth=4))
+        info = self.engine.analyse(board_state, chess.engine.Limit(depth=3))
         if self.original_player:
             try:
                 pov_score = int(info["score"].white().__str__())
@@ -312,6 +312,7 @@ class MCTSEPT2(object):
                 # print(node.weight)
                 # print('Directed')
                 board_state.push_san(node.weight)
+                node.sims += 1
                 if board_state.is_game_over():
                     if board_state.is_checkmate():  # assign winner only if checkmate
                         if board_state.turn == self.original_player:
@@ -382,25 +383,25 @@ class MCTSEPT2(object):
         elif(selected_node.termnode == True):  # If terminal node is reselected by UCB1
             result = selected_node.termresult
 
-        elif(selected_node.sims == (self.calc_seconds*0) or selected_node.sims == (self.calc_seconds*5) or selected_node.sims == (self.calc_seconds*10) or selected_node.sims == (self.calc_seconds*15)):
+        elif(selected_node.sims == (self.calc_seconds*1) or selected_node.sims == (self.calc_seconds*10) or selected_node.sims == (self.calc_seconds*30) or selected_node.sims == (self.calc_seconds*40)):
             # expand depth at respective intervals
             for node in LevelOrderIter(selected_node):
-                if selected_node.sims == (self.calc_seconds*0):
+                if selected_node.sims == (self.calc_seconds*1):
                     if node.depth == 2:
                         break
                     if node.is_leaf:
-                        self.ordered_expansion(node, 3)
-                elif selected_node.sims == (self.calc_seconds*5):
+                        self.ordered_expansion(node, 4)
+                elif selected_node.sims == (self.calc_seconds*10):
                     if node.depth == 3:
                         break
                     if node.is_leaf:
-                        self.ordered_expansion(node, 2)
-                elif selected_node.sims == (self.calc_seconds*10):
+                        self.ordered_expansion(node, 3)
+                elif selected_node.sims == (self.calc_seconds*30):
                     if node.depth == 4:
                         break
                     if node.is_leaf:
-                        self.ordered_expansion(node, 1)
-                elif selected_node.sims == (self.calc_seconds*15):
+                        self.ordered_expansion(node, 2)
+                elif selected_node.sims == (self.calc_seconds*40):
                     if node.depth == 5:
                         break
                     if node.is_leaf:
@@ -479,18 +480,18 @@ class MCTSEPT2(object):
                     self.terminal_depth = 0
                     self.lock_depth = True
                 # lock depth when high advantage, extra moves wash out meaning
-                elif int(mate_info["score"].white().__str__()) > 2000 and int(mate_info["score"].white().__str__()) > 6382:
-                    self.terminal_depth = 0
-                    self.lock_depth = True
+                # elif int(mate_info["score"].white().__str__()) > 2000 and int(mate_info["score"].white().__str__()) > 6382:
+                #     self.terminal_depth = 0
+                #     self.lock_depth = True
             except:
                 print(mate_info["score"].white().__str__())
         else:
             if mate_info["score"].black().__str__()[1] == '+':
                 self.terminal_depth = 0
                 self.lock_depth = True
-            elif int(mate_info["score"].black().__str__()) > 2000 and int(mate_info["score"].black().__str__()) > 6382:
-                self.terminal_depth = 0
-                self.lock_depth = True
+            # elif int(mate_info["score"].black().__str__()) > 2000 and int(mate_info["score"].black().__str__()) > 6382:
+            #     self.terminal_depth = 0
+            #     self.lock_depth = True
 
         # print(mate_info["score"].white().__str__())
         # print(self.terminal_depth)
