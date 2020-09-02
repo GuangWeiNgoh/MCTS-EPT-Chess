@@ -3,6 +3,7 @@
 import chess
 import chess.engine
 import chess.svg
+import chess.syzygy  # endgame tablebases
 import time
 import datetime
 import streamlit as st
@@ -36,11 +37,11 @@ class Playout(object):
         # self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
         #     "./Engines/Alaric/Alaric707.exe")
         # 1200 Elo
-        self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
-            "./Engines/Irina/irina.exe")
-        # 1800 Elo
         # self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
-        #     "./Engines/Cdrill/CDrill_1800_Build_4.exe")
+        #     "./Engines/Irina/irina.exe")
+        # 1800 Elo
+        self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
+            "./Engines/Cdrill/CDrill_1800_Build_4.exe")
         # 2058 Elo
         # self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
         #     "./Engines/Clarabit/clarabit_100_x32_win.exe")
@@ -160,6 +161,28 @@ class Playout(object):
 
         return game_over
 
+    def check_tablebase(self):
+        game_over = False
+        with chess.syzygy.open_tablebase("syzygy/3-4-5") as tablebase:
+            dtz = tablebase.get_dtz(self.board_state)
+            # print(tablebase.get_wdl(self.board_state))
+            # print(tablebase.get_dtz(self.board_state))
+            # print(tablebase.probe_wdl(board))
+            # print(tablebase.probe_dtz(board))
+        if dtz != None:
+            print('DTZ: ' + str(dtz))
+            game_over = True
+            if dtz == 0:
+                self.draw_count += 1
+                self.last_game_status = 'Draw (DTZ:0)'
+            elif dtz > 0:
+                self.win_count += 1
+                self.last_game_status = 'Won (DTZ:' + str(dtz) + ')'
+            elif dtz < 0:
+                self.lose_count += 1
+                self.last_game_status = 'Lost (DTZ:' + str(dtz) + ')'
+        return game_over
+
     def run_algo_playout(self):
 
         # update algo board state with current board, important for restarting games
@@ -207,6 +230,7 @@ class Playout(object):
         self.update_cp()
 
         end_game = self.check_game_over()
+        end_game = self.check_tablebase()
         if end_game:
             return end_game
 
