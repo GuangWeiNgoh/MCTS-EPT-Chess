@@ -148,11 +148,11 @@ class MCTSEPT2(object):
         for move in move_list:
             board.push(move)
             if depth % 2 == 0:
-                score = self.stockfish_eval(board)
-                # score = StaticEval.evaluate_board(board)
+                # score = self.stockfish_eval(board)
+                score = StaticEval.evaluate_board(board)
             else:
-                score = 1-(self.stockfish_eval(board))
-                # score = -(StaticEval.evaluate_board(board))
+                # score = 1-(self.stockfish_eval(board))
+                score = -(StaticEval.evaluate_board(board))
             eval_list.append((move, score))
             board.pop()
         import operator
@@ -303,9 +303,10 @@ class MCTSEPT2(object):
         # convert fen string back to board object
         board_state = chess.Board(node.state)
 
-        if self.lock_depth == True:
-            score = self.stockfish_eval(board_state)
-        else:
+        # if self.lock_depth == True:
+        #     score = self.stockfish_eval(board_state)
+        # else:
+        if self.lock_depth == False:
             while(node.children):
                 # print(len(node.children))
                 node = node.children[random.randint(0, len(node.children)-1)]
@@ -340,7 +341,15 @@ class MCTSEPT2(object):
         #                 return 1.0
         #         return 0.0  # is draw considered a loss for mcts-ept?
 
-        score = self.stockfish_eval(board_state)
+        # score = self.stockfish_eval(board_state)
+
+        stat_eval = StaticEval.evaluate_board(
+            board_state)  # use static eval otherwise
+        if self.original_player:
+            score = 1 / (1 + (10 ** -(stat_eval / 400)))
+        else:
+            score = 1 / (1 + (10 ** -((-stat_eval) / 400)))
+
         # if self.lock_depth == True:
         #     # use stockfish when mate score found
         #     score = self.stockfish_eval(board_state)
@@ -390,22 +399,22 @@ class MCTSEPT2(object):
                     if node.depth == 2:
                         break
                     if node.is_leaf:
-                        self.ordered_expansion(node, 4)
+                        self.ordered_expansion(node, 8)
                 elif selected_node.sims == (self.calc_seconds*10):
                     if node.depth == 3:
                         break
                     if node.is_leaf:
-                        self.ordered_expansion(node, 3)
+                        self.ordered_expansion(node, 7)
                 elif selected_node.sims == (self.calc_seconds*30):
                     if node.depth == 4:
                         break
                     if node.is_leaf:
-                        self.ordered_expansion(node, 2)
+                        self.ordered_expansion(node, 6)
                 elif selected_node.sims == (self.calc_seconds*40):
                     if node.depth == 5:
                         break
                     if node.is_leaf:
-                        self.ordered_expansion(node, 1)
+                        self.ordered_expansion(node, 5)
             # run sim after expansion
             result = self.run_simulation(selected_node)
 
@@ -467,7 +476,7 @@ class MCTSEPT2(object):
         else:
             # generate legal moves for starting state
             self.ordered_expansion(
-                globals()[str(self.starting_board_state.fen())+str(0)], 8)
+                globals()[str(self.starting_board_state.fen())+str(0)], 12)
 
         mate_info = self.engine.analyse(
             self.starting_board_state, chess.engine.Limit(depth=3))
