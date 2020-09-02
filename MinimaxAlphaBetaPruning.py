@@ -3,6 +3,7 @@ import chess
 import math
 import random
 import sys
+import StaticEval  # static evaluation function
 
 
 def minimaxRoot(depth, board, isMaximizing):
@@ -25,7 +26,8 @@ def minimaxRoot(depth, board, isMaximizing):
 
 def minimax(depth, board, alpha, beta, is_maximizing):
     if(depth == 0):
-        return -evaluation(board)
+        # return -evaluation(board)
+        return -StaticEval.evaluate_board(board)
     possibleMoves = board.legal_moves
     if(is_maximizing):
         bestMove = -9999
@@ -64,7 +66,8 @@ def calculateMove(board):
     for x in possible_moves:
         move = chess.Move.from_uci(str(x))
         board.push(move)
-        boardValue = -evaluation(board)
+        # boardValue = -evaluation(board)
+        boardValue = -StaticEval.evaluate_board(board)
         board.pop()
         if(boardValue > bestValue):
             bestValue = boardValue
