@@ -231,9 +231,7 @@ try:
     # Evalutate score using stockfish evaluation
     # print(datetime.datetime.utcnow())
     engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
-    print(datetime.datetime.utcnow())
     info = engine.analyse(board, chess.engine.Limit(depth=3))
-    print(datetime.datetime.utcnow())
     # info = engine.analyse(board, chess.engine.Limit(depth=20))
     # info = engine.analyse(board, chess.engine.Limit(depth=20), multipv=4)
     # print(board.san(info[0]["pv"][0]))
