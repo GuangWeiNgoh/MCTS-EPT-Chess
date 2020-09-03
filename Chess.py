@@ -229,8 +229,11 @@ fen = st.text_input(
 try:
     board = chess.Board(fen)
     # Evalutate score using stockfish evaluation
+    # print(datetime.datetime.utcnow())
     engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
+    print(datetime.datetime.utcnow())
     info = engine.analyse(board, chess.engine.Limit(depth=3))
+    print(datetime.datetime.utcnow())
     # info = engine.analyse(board, chess.engine.Limit(depth=20))
     # info = engine.analyse(board, chess.engine.Limit(depth=20), multipv=4)
     # print(board.san(info[0]["pv"][0]))
@@ -316,14 +319,14 @@ num_games = st.number_input(
     'Number of games', 1, key='num_games')
 
 opponent_selection = st.selectbox(
-    'Opponent engine', ('Minimax with Alpha-Beta Pruning', 'Irina (1200 Elo)', 'Stockfish 11'))
+    'Opponent engine', ('Minimax with Alpha-Beta Pruning', 'CDrill (1800 Elo)', 'Stockfish 11'))
 
 if opponent_selection == 'Stockfish 11':
     opponent_depth = st.slider(
         'Stockfish search depth', 0, 20, 1, key='stockfish_depth')
-elif opponent_selection == 'Irina (1200 Elo)':
+elif opponent_selection == 'CDrill (1800 Elo)':
     opponent_depth = st.slider(
-        'Irina search time', 0, 20, 5, key='irina_depth')
+        'CDrill search time', 0, 20, 5, key='cdrill_depth')
 else:
     opponent_depth = st.slider(
         'Minimax search depth', 0, 20, 4, key='minimax_depth')
@@ -335,7 +338,7 @@ if st.button('Start playout'):
     # st.text('Change depth to time?')
     st.subheader(str(num_games)+' Game Playout')
     st.text(str(algo) + ' vs ' + str(opponent_selection) +
-            ' (Depth ' + str(opponent_depth) + ')')
+            ' (Time ' + str(opponent_depth) + ')')
 
     if algo == 'MCTS':
         algo = MCTS(board, time=calc_time,
