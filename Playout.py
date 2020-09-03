@@ -74,6 +74,96 @@ class Playout(object):
         self.draw_count = 0
         self.last_game_status = ''  # stores game status of previous game
 
+        # *******************************************************************************************************************************
+
+    def minimaxRoot(self, depth, board, isMaximizing):
+        possibleMoves = board.legal_moves
+        bestMove = -9999
+        bestMoveFinal = None
+        for x in possibleMoves:
+            move = chess.Move.from_uci(str(x))
+            board.push(move)
+            value = max(bestMove, self.minimax(
+                depth - 1, board, -10000, 10000, not isMaximizing))
+            board.pop()
+            if(value > bestMove):
+                print("Best score: ", str(bestMove))
+                print("Best move: ", str(bestMoveFinal))
+                bestMove = value
+                bestMoveFinal = move
+        return bestMoveFinal
+
+    def minimax(self, depth, board, alpha, beta, is_maximizing):
+        if(depth == 0):
+            return -self.stock_eval(board)
+            # return -(Playout.Playout.minimax_eval(board))
+            # return -evaluation(board)
+            # return -StaticEval.evaluate_board(board)
+        possibleMoves = board.legal_moves
+        if(is_maximizing):
+            bestMove = -9999
+            for x in possibleMoves:
+                move = chess.Move.from_uci(str(x))
+                board.push(move)
+                bestMove = max(bestMove, self.minimax(
+                    depth - 1, board, alpha, beta, not is_maximizing))
+                board.pop()
+                alpha = max(alpha, bestMove)
+                if beta <= alpha:
+                    return bestMove
+            return bestMove
+        else:
+            bestMove = 9999
+            for x in possibleMoves:
+                move = chess.Move.from_uci(str(x))
+                board.push(move)
+                bestMove = min(bestMove, self.minimax(
+                    depth - 1, board, alpha, beta, not is_maximizing))
+                board.pop()
+                beta = min(beta, bestMove)
+                if(beta <= alpha):
+                    return bestMove
+            return bestMove
+
+    def calculateMove(self, board):
+        possible_moves = board.legal_moves
+        if(len(possible_moves) == 0):
+            print("No more possible moves...Game Over")
+            sys.exit()
+        bestMove = None
+        bestValue = -9999
+        n = 0
+        for x in possible_moves:
+            move = chess.Move.from_uci(str(x))
+            board.push(move)
+            boardValue = -self.stock_eval(board)
+            # boardValue = -(Playout.Playout.minimax_eval(board))
+            # boardValue = -evaluation(board)
+            # boardValue = -StaticEval.evaluate_board(board)
+            board.pop()
+            if(boardValue > bestValue):
+                bestValue = boardValue
+                bestMove = move
+
+        return bestMove
+
+    def stock_eval(self, board):
+        # engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
+        info = self.evaluation_engine.analyse(
+            board, chess.engine.Limit(depth=3))
+        try:
+            evaluation = int(info["score"].white().__str__())
+        except:
+            pov_score = info["score"].white().__str__()
+            if pov_score[1] == '+':  # mate in x
+                return 6382
+            else:
+                return -6382
+        # engine.close()
+        return evaluation
+
+    # *******************************************************************************************************************************
+
     def animate_board(self, move):  # save board state to svg then png to display
         board_svg = chess.svg.board(
             board=self.board_state, lastmove=move)
@@ -113,7 +203,7 @@ class Playout(object):
         # opponent_engine.quit()
         return best_move
 
-    def irina_move(self):
+    def engine_move(self):
         # info = self.opponent_engine.analyse(
         #     self.board_state, chess.engine.Limit(time=self.search_depth))
         # print(info)
@@ -126,10 +216,18 @@ class Playout(object):
 
     def minimax_move(self):
         # print(datetime.datetime.utcnow())
-        best_move = MinimaxAlphaBetaPruning.minimaxRoot(
+        # best_move = MinimaxAlphaBetaPruning.minimaxRoot(
+        #     self.search_depth, self.board_state, True)
+        best_move = self.minimaxRoot(
             self.search_depth, self.board_state, True)
         # print(datetime.datetime.utcnow())
         return best_move
+
+    # def minimax_eval(self, board):
+    #     info = self.evaluation_engine.analyse(
+    #         board, chess.engine.Limit(depth=3))
+    #     evaluation = int(info["score"].white().__str__())
+    #     return evaluation
 
     def check_game_over(self):  # checks if game has ended, return true if ended
         game_over = False
@@ -215,8 +313,8 @@ class Playout(object):
         # opponent turn
         if self.opponent == 'Stockfish 11':
             opponent_best_move = self.stockfish_move()
-        elif self.opponent == 'Irina (1200 Elo)':
-            opponent_best_move = self.irina_move()
+        elif self.opponent == 'CDrill (1800 Elo)':
+            opponent_best_move = self.engine_move()
         else:
             opponent_best_move = self.minimax_move()
         try:
@@ -230,9 +328,11 @@ class Playout(object):
         self.update_cp()
 
         end_game = self.check_game_over()
-        end_game = self.check_tablebase()
         if end_game:
             return end_game
+        # tablebase_end_game = self.check_tablebase()
+        # if tablebase_end_game:
+        #     return tablebase_end_game
 
         return end_game  # continue game is end_game == False
 
