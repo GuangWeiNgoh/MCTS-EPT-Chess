@@ -88,15 +88,15 @@ class MCTSEPT2(object):
                     ucb_score = math.inf
                 else:
                     # UCT
-                    ucb_score = ((each.score) + (c_value *
-                                                 sqrt((2*log_value)/each.sims)))
+                    # ucb_score = ((each.score) + (c_value *
+                    #                              sqrt((2*log_value)/each.sims)))
                     # UCB1
                     # ucb_score = ((each.score) + (c_value *
                     #                              sqrt(log_value/each.sims)))
                     # UCB1-Tuned
                     # variance = each.score * (1 - each.score)
-                    # ucb_score = each.score + c_value * sqrt((log_value/each.sims) * min(1/4, (each.score * (1 - each.score) +
-                    #                                                                           sqrt(2*log_value/each.sims))))
+                    ucb_score = each.score + c_value * sqrt((log_value/each.sims) * min(1/4, (each.score * (1 - each.score) +
+                                                                                              sqrt(2*log_value/each.sims))))
                 if ucb_score > max_ucb:
                     max_ucb = ucb_score
                     node = each
@@ -322,7 +322,7 @@ class MCTSEPT2(object):
                             return 1.0
                     return 0.0  # is draw considered a loss for mcts-ept?
 
-        board_state.push(random.choice(list(board_state.legal_moves)))
+        # board_state.push(random.choice(list(board_state.legal_moves)))
 
         # for move in range(self.terminal_depth):
         #     if node.children:
@@ -394,10 +394,10 @@ class MCTSEPT2(object):
         elif(selected_node.termnode == True):  # If terminal node is reselected by UCB1
             result = selected_node.termresult
 
-        elif(selected_node.sims == (self.calc_seconds*1) or selected_node.sims == (self.calc_seconds*10) or selected_node.sims == (self.calc_seconds*30) or selected_node.sims == (self.calc_seconds*40)):
+        elif(selected_node.sims == (self.calc_seconds*5) or selected_node.sims == (self.calc_seconds*10) or selected_node.sims == (self.calc_seconds*20) or selected_node.sims == (self.calc_seconds*40)):
             # expand depth at respective intervals
             for node in LevelOrderIter(selected_node):
-                if selected_node.sims == (self.calc_seconds*1):
+                if selected_node.sims == (self.calc_seconds*5):
                     if node.depth == 2:
                         break
                     if node.is_leaf:
@@ -407,7 +407,7 @@ class MCTSEPT2(object):
                         break
                     if node.is_leaf:
                         self.ordered_expansion(node, 3)
-                elif selected_node.sims == (self.calc_seconds*30):
+                elif selected_node.sims == (self.calc_seconds*20):
                     if node.depth == 4:
                         break
                     if node.is_leaf:

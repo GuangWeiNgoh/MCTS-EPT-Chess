@@ -12,6 +12,7 @@ import ast
 import json
 import math
 import sys
+import StaticEval  # static evaluation function
 from copy import deepcopy
 # from treelib import Node, Tree
 # from graphviz import Digraph
@@ -174,20 +175,6 @@ class MCTSEPT(object):
         for move in range(self.terminal_depth):
 
             board_state.push(random.choice(list(board_state.legal_moves)))
-            # try:
-            #     make = random.choice(list(board_state.legal_moves))
-            #     board_state.push(make)
-
-            # except:
-            #     print('Illegal move during simulation')
-            #     print(board_state)
-            #     print(node.advs)
-            #     print(node.sims)
-            #     while(node.parent):
-            #         print(node.weight)
-            #         node = node.parent
-            #     print(make)
-
             if board_state.is_game_over():
 
                 if board_state.is_checkmate():  # assign winner only if checkmate
@@ -198,33 +185,46 @@ class MCTSEPT(object):
                 return False
                 # break
 
-        info = self.engine.analyse(board_state, chess.engine.Limit(time=0.01))
+        stat_eval = StaticEval.evaluate_board(
+            board_state)  # use static eval otherwise
         if self.original_player:
-            try:
-                pov_score = int(info["score"].white().__str__())
-                if pov_score > 0:
-                    return True
-                else:
-                    return False
-            except:
-                pov_score = info["score"].white().__str__()
-                if pov_score[1] == '+':
-                    return True
-                else:
-                    return False
+            if stat_eval > 0:
+                return True
+            else:
+                return False
         else:
-            try:
-                pov_score = int(info["score"].black().__str__())
-                if pov_score > 0:
-                    return True
-                else:
-                    return False
-            except:
-                pov_score = info["score"].black().__str__()
-                if pov_score[1] == '+':
-                    return True
-                else:
-                    return False
+            if -stat_eval > 0:
+                return True
+            else:
+                return False
+
+        # info = self.engine.analyse(board_state, chess.engine.Limit(time=0.01))
+        # if self.original_player:
+        #     try:
+        #         pov_score = int(info["score"].white().__str__())
+        #         if pov_score > 0:
+        #             return True
+        #         else:
+        #             return False
+        #     except:
+        #         pov_score = info["score"].white().__str__()
+        #         if pov_score[1] == '+':
+        #             return True
+        #         else:
+        #             return False
+        # else:
+        #     try:
+        #         pov_score = int(info["score"].black().__str__())
+        #         if pov_score > 0:
+        #             return True
+        #         else:
+        #             return False
+        #     except:
+        #         pov_score = info["score"].black().__str__()
+        #         if pov_score[1] == '+':
+        #             return True
+        #         else:
+        #             return False
 
     # **********************************************************************************************************************
 

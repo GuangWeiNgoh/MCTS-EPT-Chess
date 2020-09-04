@@ -317,17 +317,30 @@ num_games = st.number_input(
     'Number of games', 1, key='num_games')
 
 opponent_selection = st.selectbox(
-    'Opponent engine', ('Minimax with Alpha-Beta Pruning', 'CDrill (1800 Elo)', 'Stockfish 11'))
+    'Opponent engine', ('MCTS-EPT', 'Minimax with Alpha-Beta Pruning', 'Irina (1200 Elo)', 'CDrill (1800 Elo)', 'Clarabit (2058 Elo)', 'Stockfish 11'))
 
 if opponent_selection == 'Stockfish 11':
     opponent_depth = st.slider(
         'Stockfish search depth', 0, 20, 1, key='stockfish_depth')
+elif opponent_selection == 'Irina (1200 Elo)':
+    opponent_depth = st.slider(
+        'Irina search time', 0, 20, 5, key='irina_depth')
 elif opponent_selection == 'CDrill (1800 Elo)':
     opponent_depth = st.slider(
         'CDrill search time', 0, 20, 5, key='cdrill_depth')
-else:
+elif opponent_selection == 'Clarabit (2058 Elo)':
+    opponent_depth = st.slider(
+        'Clarabit search time', 0, 20, 5, key='clarabit_depth')
+elif opponent_selection == 'Minimax with Alpha-Beta Pruning':
     opponent_depth = st.slider(
         'Minimax search depth', 0, 20, 4, key='minimax_depth')
+else:
+    opponent_depth = st.slider(
+        'MCTS-EPT terminal depth', 0, 20, 5, key='opponent_ept_depth')
+    opponent_ept_root_c_value = st.number_input(
+        'UCT exploration constant @ root', 3.0, key='opponent_ept_root_c_value')
+    opponent_ept_c_value = st.number_input(
+        'UCT exploration constant', 1.4, key='opponent_ept_c_value')
 
 
 if st.button('Start playout'):

@@ -37,18 +37,19 @@ class Playout(object):
         # self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
         #     "./Engines/Alaric/Alaric707.exe")
         # 1200 Elo
-        # self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
-        #     "./Engines/Irina/irina.exe")
+        if opponent == 'Irina (1200 Elo)':
+            self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
+                "./Engines/Irina/irina.exe")
         # 1800 Elo
-        self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
-            "./Engines/Cdrill/CDrill_1800_Build_4.exe")
+        elif opponent == 'Cdrill (1800 Elo)':
+            self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
+                "./Engines/Cdrill/CDrill_1800_Build_4.exe")
         # 2058 Elo
-        # self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
-        #     "./Engines/Clarabit/clarabit_100_x32_win.exe")
-        # if opponent == 'Acqua (800 Elo)':
-        #     self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
-        #         "acqua.exe")
-
+        elif opponent == 'Clarabit (2058 Elo)':
+            self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
+                "./Engines/Clarabit/clarabit_100_x32_win.exe")
+        elif opponent == 'MCTS-EPT':
+            pass
         if board.turn:
             self.original_player = True
         else:
@@ -95,10 +96,10 @@ class Playout(object):
 
     def minimax(self, depth, board, alpha, beta, is_maximizing):
         if(depth == 0):
-            return -self.stock_eval(board)
+            # return -self.stock_eval(board)
             # return -(Playout.Playout.minimax_eval(board))
             # return -evaluation(board)
-            # return -StaticEval.evaluate_board(board)
+            return -StaticEval.evaluate_board(board)
         possibleMoves = board.legal_moves
         if(is_maximizing):
             bestMove = -9999
@@ -136,10 +137,10 @@ class Playout(object):
         for x in possible_moves:
             move = chess.Move.from_uci(str(x))
             board.push(move)
-            boardValue = -self.stock_eval(board)
+            # boardValue = -self.stock_eval(board)
             # boardValue = -(Playout.Playout.minimax_eval(board))
             # boardValue = -evaluation(board)
-            # boardValue = -StaticEval.evaluate_board(board)
+            boardValue = -StaticEval.evaluate_board(board)
             board.pop()
             if(boardValue > bestValue):
                 bestValue = boardValue
