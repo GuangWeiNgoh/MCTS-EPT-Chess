@@ -20,7 +20,7 @@ from PIL import Image
 
 class Playout(object):
 
-    def __init__(self, board, games, opponent, depth, algo_obj):
+    def __init__(self, board, games, opponent, depth, algo_obj, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value):
         self.starting_board_state = board
         self.board_state = board
         self.num_games = games
@@ -41,7 +41,7 @@ class Playout(object):
             self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
                 "./Engines/Irina/irina.exe")
         # 1800 Elo
-        elif opponent == 'Cdrill (1800 Elo)':
+        elif opponent == 'CDrill (1800 Elo)':
             self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
                 "./Engines/Cdrill/CDrill_1800_Build_4.exe")
         # 2058 Elo
@@ -49,7 +49,8 @@ class Playout(object):
             self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
                 "./Engines/Clarabit/clarabit_100_x32_win.exe")
         elif opponent == 'MCTS-EPT':
-            pass
+            self.opponent_algo = MCTSEPT(board, time=opponent_calc_time,
+                                         terminal_depth=depth, C=opponent_ept_c_value, root_C=opponent_ept_root_c_value, player=False)
         if board.turn:
             self.original_player = True
         else:
@@ -314,10 +315,26 @@ class Playout(object):
         # opponent turn
         if self.opponent == 'Stockfish 11':
             opponent_best_move = self.stockfish_move()
-        elif self.opponent == 'CDrill (1800 Elo)':
-            opponent_best_move = self.engine_move()
-        else:
+        elif self.opponent == 'Minimax with Alpha-Beta Pruning':
             opponent_best_move = self.minimax_move()
+        elif self.opponent == 'MCTS-EPT':
+            # update algo board state with current board, important for restarting games
+            self.opponent_algo.starting_board_state = self.board_state.copy()
+            # initialize root node with children at depth 1
+            root_node = self.opponent_algo.algo_init()
+
+            start_time = datetime.datetime.utcnow()  # current time
+            # run simulation until allowed time is reached
+            while datetime.datetime.utcnow() - start_time < self.opponent_algo.calc_time:
+                end_sim = self.opponent_algo.algo(root_node)
+                if end_sim:
+                    break
+            best_move, _, _, _, _, _ = self.opponent_algo.algo_render()
+
+            # parse from san to uci for last move on svg
+            opponent_best_move = self.board_state.parse_san(best_move)
+        else:
+            opponent_best_move = self.engine_move()
         try:
             self.board_state.push(opponent_best_move)
         except:
@@ -354,4 +371,7 @@ class Playout(object):
                 'Wins: ' + str(self.win_count) + '\nLosses: ' + str(self.lose_count) + '\nDraws: ' + str(self.draw_count))
             st.text('Game ' + str(game_number) +
                     ' - ' + str(self.last_game_status) + ' - ' + str(self.moves_played) + ' Moves')
-        self.opponent_engine.quit()
+        try:
+            self.opponent_engine.quit()
+        except:
+            print('No uci opponent engine created')

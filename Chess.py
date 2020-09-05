@@ -275,7 +275,7 @@ ept_root_c_value = st.sidebar.number_input(
 ept_c_value = st.sidebar.number_input(
     'UCT exploration constant', 1.4, key='ept_c_value')
 terminal_depth = st.sidebar.slider(
-    'Playout terminal depth', 0, 50, 5, key='ept_depth')
+    'Playout terminal depth', 0, 50, 3, key='ept_depth')
 
 st.sidebar.subheader("MCTS-EPT (CP Normalized)")
 ept_2_root_c_value = st.sidebar.number_input(
@@ -283,7 +283,7 @@ ept_2_root_c_value = st.sidebar.number_input(
 ept_2_c_value = st.sidebar.number_input(
     'UCT exploration constant', 0.8, key='ept_2_c_value')
 terminal_depth_2 = st.sidebar.slider(
-    'Playout terminal depth', 0, 50, 4, key='ept_2_depth')
+    'Playout terminal depth', 0, 50, 3, key='ept_2_depth')
 
 st.text("")
 algo = st.radio("Select Algorithm",
@@ -322,21 +322,38 @@ opponent_selection = st.selectbox(
 if opponent_selection == 'Stockfish 11':
     opponent_depth = st.slider(
         'Stockfish search depth', 0, 20, 1, key='stockfish_depth')
+    opponent_calc_time = 0
+    opponent_ept_root_c_value = 0
+    opponent_ept_c_value = 0
 elif opponent_selection == 'Irina (1200 Elo)':
     opponent_depth = st.slider(
         'Irina search time', 0, 20, 5, key='irina_depth')
+    opponent_calc_time = 0
+    opponent_ept_root_c_value = 0
+    opponent_ept_c_value = 0
 elif opponent_selection == 'CDrill (1800 Elo)':
     opponent_depth = st.slider(
         'CDrill search time', 0, 20, 5, key='cdrill_depth')
+    opponent_calc_time = 0
+    opponent_ept_root_c_value = 0
+    opponent_ept_c_value = 0
 elif opponent_selection == 'Clarabit (2058 Elo)':
     opponent_depth = st.slider(
         'Clarabit search time', 0, 20, 5, key='clarabit_depth')
+    opponent_calc_time = 0
+    opponent_ept_root_c_value = 0
+    opponent_ept_c_value = 0
 elif opponent_selection == 'Minimax with Alpha-Beta Pruning':
     opponent_depth = st.slider(
         'Minimax search depth', 0, 20, 4, key='minimax_depth')
+    opponent_calc_time = 0
+    opponent_ept_root_c_value = 0
+    opponent_ept_c_value = 0
 else:
+    opponent_calc_time = st.number_input(
+        'Calculation time (seconds)', 5, key='opponent_calc_time')
     opponent_depth = st.slider(
-        'MCTS-EPT terminal depth', 0, 20, 5, key='opponent_ept_depth')
+        'MCTS-EPT terminal depth', 0, 20, 3, key='opponent_ept_depth')
     opponent_ept_root_c_value = st.number_input(
         'UCT exploration constant @ root', 3.0, key='opponent_ept_root_c_value')
     opponent_ept_c_value = st.number_input(
@@ -355,7 +372,7 @@ if st.button('Start playout'):
         algo = MCTS(board, time=calc_time,
                     max_moves=max_moves, C=c_value, player=board.turn)
         playout = Playout(board, num_games,
-                          opponent_selection, opponent_depth, algo)
+                          opponent_selection, opponent_depth, algo, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value)
         # playout.run_algo_playout()
         playout.iterate()
 
@@ -363,7 +380,7 @@ if st.button('Start playout'):
         algo = MCTSEPT(board, time=calc_time,
                        terminal_depth=terminal_depth, C=ept_c_value, root_C=ept_root_c_value, player=board.turn)
         playout = Playout(board, num_games,
-                          opponent_selection, opponent_depth, algo)
+                          opponent_selection, opponent_depth, algo, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value)
         # playout.run_algo_playout()
         playout.iterate()
 
@@ -371,7 +388,7 @@ if st.button('Start playout'):
         algo = MCTSEPT2(board, time=calc_time,
                         terminal_depth=terminal_depth_2, C=ept_2_c_value, root_C=ept_2_root_c_value, player=board.turn)
         playout = Playout(board, num_games,
-                          opponent_selection, opponent_depth, algo)
+                          opponent_selection, opponent_depth, algo, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value)
         # playout.run_algo_playout()
         playout.iterate()
 

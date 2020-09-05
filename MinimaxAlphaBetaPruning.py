@@ -28,10 +28,10 @@ def minimaxRoot(depth, board, isMaximizing):
 
 def minimax(depth, board, alpha, beta, is_maximizing):
     if(depth == 0):
-        return -stock_eval(board)
+        # return -stock_eval(board)
         # return -(Playout.Playout.minimax_eval(board))
         # return -evaluation(board)
-        # return -StaticEval.evaluate_board(board)
+        return -StaticEval.evaluate_board(board)
     possibleMoves = board.legal_moves
     if(is_maximizing):
         bestMove = -9999
@@ -70,10 +70,10 @@ def calculateMove(board):
     for x in possible_moves:
         move = chess.Move.from_uci(str(x))
         board.push(move)
-        boardValue = -stock_eval(board)
+        # boardValue = -stock_eval(board)
         # boardValue = -(Playout.Playout.minimax_eval(board))
         # boardValue = -evaluation(board)
-        # boardValue = -StaticEval.evaluate_board(board)
+        boardValue = -StaticEval.evaluate_board(board)
         board.pop()
         if(boardValue > bestValue):
             bestValue = boardValue

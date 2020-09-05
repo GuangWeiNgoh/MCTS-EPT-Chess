@@ -339,24 +339,61 @@ class MCTSEPT2(object):
         # convert fen string back to board object
         board_state = chess.Board(node.state)
 
-        # minimax playout
-        # set maximizing to True if on original player depth
-        if node.depth % 2 == 0:
-            is_maximizing = False
-        else:
-            is_maximizing = True
-        # call minimax playout
-        minimax_value = self.minimax(2, board_state, -math.inf,
-                                     math.inf, is_maximizing)
+        # directed playout with move ordering
+        # if self.lock_depth == False:
+        #     while(node.children):
+        #         # print(len(node.children))
+        #         node = node.children[random.randint(0, len(node.children)-1)]
+        #         # print(node.weight)
+        #         # print('Directed')
+        #         board_state.push_san(node.weight)
+        #         node.sims += 1
+        #         if board_state.is_game_over():
+        #             if board_state.is_checkmate():  # assign winner only if checkmate
+        #                 if board_state.turn == self.original_player:
+        #                     return 0.0
+        #                 else:
+        #                     return 1.0
+        #             return 0.0  # is draw considered a loss for mcts-ept?
+
+        # random playout
+        for move in range(self.terminal_depth):
+            # if node.children:
+            #     # print(len(node.children))
+            #     node = node.children[random.randint(0, len(node.children)-1)]
+            #     # print(node.weight)
+            #     # print('Directed')
+            #     board_state.push_san(node.weight)
+            # else:
+            #     # print('Random')
+            #     board_state.push(random.choice(list(board_state.legal_moves)))
+            board_state.push(random.choice(list(board_state.legal_moves)))
+            if board_state.is_game_over():
+                if board_state.is_checkmate():  # assign winner only if checkmate
+                    if board_state.turn == self.original_player:
+                        return 0.0
+                    else:
+                        return 1.0
+                return 0.0  # is draw considered a loss for mcts-ept?
+
+        # # minimax playout
+        # # set maximizing to True if on original player depth
+        # if node.depth % 2 == 0:
+        #     is_maximizing = False
+        # else:
+        #     is_maximizing = True
+        # # call minimax playout
+        # minimax_value = self.minimax(2, board_state, -math.inf,
+        #                              math.inf, is_maximizing)
 
         # score = self.stockfish_eval(board_state)
 
-        # stat_eval = StaticEval.evaluate_board(
-        #     board_state)  # use static eval otherwise
+        stat_eval = StaticEval.evaluate_board(
+            board_state)  # use static eval otherwise
         if self.original_player:
-            score = 1 / (1 + (10 ** -(minimax_value / 400)))
+            score = 1 / (1 + (10 ** -(stat_eval / 400)))
         else:
-            score = 1 / (1 + (10 ** -((-minimax_value) / 400)))
+            score = 1 / (1 + (10 ** -((-stat_eval) / 400)))
 
         # if self.lock_depth == True:
         #     # use stockfish when mate score found

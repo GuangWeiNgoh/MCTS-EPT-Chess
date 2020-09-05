@@ -37,7 +37,7 @@ class MCTSEPT2(object):
         # statistics tables.
         # pass
         print("\n")
-        print("******* MCTS-EPT Object Created *******")
+        print("******* MCTS-EPT 2 Object Created *******")
         print("\n")
         self.starting_board_state = board.copy()
         self.calc_seconds = kwargs.get('time', 30)  # default set at 30 seconds
@@ -72,35 +72,34 @@ class MCTSEPT2(object):
 
     def run_selection(self, node):
         # select child that maximizes UCB1
-        while not(node.is_leaf):
-            if node.depth == 0:  # use root_C for selection from root node
-                c_value = self.root_C
-            else:
-                c_value = self.C
+        if node.depth == 0:  # use root_C for selection from root node
+            c_value = self.root_C
+        else:
+            c_value = self.C
 
-            if node.sims == 0:  # only for root node
-                node = node.children[0]
-            else:
-                max_ucb = -math.inf
-                ucb_score = -math.inf
-                log_value = log(node.sims)
-                for each in node.children:
-                    if each.sims == 0:
-                        ucb_score = math.inf
-                    else:
-                        # UCT
-                        # ucb_score = ((each.score) + (c_value *
-                        #                              sqrt((2*log_value)/each.sims)))
-                        # UCB1
-                        # ucb_score = ((each.score) + (c_value *
-                        #                              sqrt(log_value/each.sims)))
-                        # UCB1-Tuned
-                        # variance = each.score * (1 - each.score)
-                        ucb_score = each.score + c_value * sqrt((log_value/each.sims) * min(1/4, (each.score * (1 - each.score) +
-                                                                                                  sqrt(2*log_value/each.sims))))
-                    if ucb_score > max_ucb:
-                        max_ucb = ucb_score
-                        node = each
+        if node.sims == 0:  # only for root node
+            node = node.children[0]
+        else:
+            max_ucb = -math.inf
+            ucb_score = -math.inf
+            log_value = log(node.sims)
+            for each in node.children:
+                if each.sims == 0:
+                    ucb_score = math.inf
+                else:
+                    # UCT
+                    # ucb_score = ((each.score) + (c_value *
+                    #                              sqrt((2*log_value)/each.sims)))
+                    # UCB1
+                    # ucb_score = ((each.score) + (c_value *
+                    #                              sqrt(log_value/each.sims)))
+                    # UCB1-Tuned
+                    # variance = each.score * (1 - each.score)
+                    ucb_score = each.score + c_value * sqrt((log_value/each.sims) * min(1/4, (each.score * (1 - each.score) +
+                                                                                              sqrt(2*log_value/each.sims))))
+                if ucb_score > max_ucb:
+                    max_ucb = ucb_score
+                    node = each
         return node
 
     # **********************************************************************************************************************
@@ -148,13 +147,12 @@ class MCTSEPT2(object):
         eval_list = []
         for move in move_list:
             board.push(move)
-            score = StaticEval.evaluate_board(board)
-            # if depth % 2 == 0:
-            #     # score = self.stockfish_eval(board)
-            #     score = StaticEval.evaluate_board(board)
-            # else:
-            #     # score = 1-(self.stockfish_eval(board))
-            #     score = -(StaticEval.evaluate_board(board))
+            if depth % 2 == 0:
+                score = self.stockfish_eval(board)
+                # score = StaticEval.evaluate_board(board)
+            else:
+                score = 1-(self.stockfish_eval(board))
+                # score = -(StaticEval.evaluate_board(board))
             eval_list.append((move, score))
             board.pop()
         import operator
@@ -305,49 +303,54 @@ class MCTSEPT2(object):
         # convert fen string back to board object
         board_state = chess.Board(node.state)
 
-        # if self.lock_depth == False:
-        #     while(node.children):
+        # if self.lock_depth == True:
+        #     score = self.stockfish_eval(board_state)
+        # else:
+        if self.lock_depth == False:
+            while(node.children):
+                # print(len(node.children))
+                node = node.children[random.randint(0, len(node.children)-1)]
+                # print(node.weight)
+                # print('Directed')
+                board_state.push_san(node.weight)
+                node.sims += 1
+                if board_state.is_game_over():
+                    if board_state.is_checkmate():  # assign winner only if checkmate
+                        if board_state.turn == self.original_player:
+                            return 0.0
+                        else:
+                            return 1.0
+                    return 0.0  # is draw considered a loss for mcts-ept?
+
+        # board_state.push(random.choice(list(board_state.legal_moves)))
+
+        # for move in range(self.terminal_depth):
+        #     if node.children:
         #         # print(len(node.children))
         #         node = node.children[random.randint(0, len(node.children)-1)]
         #         # print(node.weight)
         #         # print('Directed')
         #         board_state.push_san(node.weight)
-        #         node.sims += 1
-        #         if board_state.is_game_over():
-        #             if board_state.is_checkmate():  # assign winner only if checkmate
-        #                 if board_state.turn == self.original_player:
-        #                     return 0.0
-        #                 else:
-        #                     return 1.0
-        #             return 0.0  # is draw considered a loss for mcts-ept?
+        #     else:
+        #         # print('Random')
+        #         board_state.push(random.choice(list(board_state.legal_moves)))
 
-        for move in range(self.terminal_depth):
-            # if node.children:
-            #     # print(len(node.children))
-            #     node = node.children[random.randint(0, len(node.children)-1)]
-            #     # print(node.weight)
-            #     # print('Directed')
-            #     board_state.push_san(node.weight)
-            # else:
-            #     # print('Random')
-            #     board_state.push(random.choice(list(board_state.legal_moves)))
-            board_state.push(random.choice(list(board_state.legal_moves)))
-            if board_state.is_game_over():
-                if board_state.is_checkmate():  # assign winner only if checkmate
-                    if board_state.turn == self.original_player:
-                        return 0.0
-                    else:
-                        return 1.0
-                return 0.0  # is draw considered a loss for mcts-ept?
+        #     if board_state.is_game_over():
+        #         if board_state.is_checkmate():  # assign winner only if checkmate
+        #             if board_state.turn == self.original_player:
+        #                 return 0.0
+        #             else:
+        #                 return 1.0
+        #         return 0.0  # is draw considered a loss for mcts-ept?
 
-        # score = self.stockfish_eval(board_state)
+        score = self.stockfish_eval(board_state)
 
-        stat_eval = StaticEval.evaluate_board(
-            board_state)  # use static eval otherwise
-        if self.original_player:
-            score = 1 / (1 + (10 ** -(stat_eval / 400)))
-        else:
-            score = 1 / (1 + (10 ** -((-stat_eval) / 400)))
+        # stat_eval = StaticEval.evaluate_board(
+        #     board_state)  # use static eval otherwise
+        # if self.original_player:
+        #     score = 1 / (1 + (10 ** -(stat_eval / 400)))
+        # else:
+        #     score = 1 / (1 + (10 ** -((-stat_eval) / 400)))
 
         # if self.lock_depth == True:
         #     # use stockfish when mate score found
@@ -391,49 +394,62 @@ class MCTSEPT2(object):
         elif(selected_node.termnode == True):  # If terminal node is reselected by UCB1
             result = selected_node.termresult
 
-        # elif(selected_node.sims == (self.calc_seconds*1) or selected_node.sims == (self.calc_seconds*10) or selected_node.sims == (self.calc_seconds*30) or selected_node.sims == (self.calc_seconds*40)):
+        elif(selected_node.sims == (self.calc_seconds*5) or selected_node.sims == (self.calc_seconds*10) or selected_node.sims == (self.calc_seconds*20) or selected_node.sims == (self.calc_seconds*40)):
+            # expand depth at respective intervals
+            for node in LevelOrderIter(selected_node):
+                if selected_node.sims == (self.calc_seconds*5):
+                    if node.depth == 2:
+                        break
+                    if node.is_leaf:
+                        self.ordered_expansion(node, 4)
+                elif selected_node.sims == (self.calc_seconds*10):
+                    if node.depth == 3:
+                        break
+                    if node.is_leaf:
+                        self.ordered_expansion(node, 3)
+                elif selected_node.sims == (self.calc_seconds*20):
+                    if node.depth == 4:
+                        break
+                    if node.is_leaf:
+                        self.ordered_expansion(node, 2)
+                elif selected_node.sims == (self.calc_seconds*40):
+                    if node.depth == 5:
+                        break
+                    if node.is_leaf:
+                        self.ordered_expansion(node, 1)
+            # run sim after expansion
+            result = self.run_simulation(selected_node)
+
+        # elif(selected_node.sims == (self.calc_seconds*0) or selected_node.sims == (self.calc_seconds*10)):
         #     # expand depth at respective intervals
         #     for node in LevelOrderIter(selected_node):
-        #         if selected_node.sims == (self.calc_seconds*1):
+        #         if selected_node.sims == (self.calc_seconds*0):
         #             if node.depth == 2:
         #                 break
         #             if node.is_leaf:
-        #                 self.ordered_expansion(node, 4)
+        #                 self.ordered_expansion(node, 5)
         #         elif selected_node.sims == (self.calc_seconds*10):
         #             if node.depth == 3:
         #                 break
         #             if node.is_leaf:
         #                 self.ordered_expansion(node, 3)
-        #         elif selected_node.sims == (self.calc_seconds*30):
-        #             if node.depth == 4:
-        #                 break
-        #             if node.is_leaf:
-        #                 self.ordered_expansion(node, 2)
-        #         elif selected_node.sims == (self.calc_seconds*40):
-        #             if node.depth == 5:
-        #                 break
-        #             if node.is_leaf:
-        #                 self.ordered_expansion(node, 1)
         #     # run sim after expansion
         #     result = self.run_simulation(selected_node)
 
-        # else:
-        #     # run sim without expansion when not at intervals
-        #     result = self.run_simulation(selected_node)
-
         else:
-            # run expansion if node has been simulated before
-            # self.run_expansion(selected_node)
-            # exp = 12 - selected_node.depth
-            self.ordered_expansion(selected_node, 5)
-            # print(exp)
-            selected_node = selected_node.children[0]
-            if selected_node.termnode == True:
-                result = selected_node.termresult
-            else:
-                result = self.run_simulation(
-                    selected_node)
-            # ran_sim = True  # true if a sim was ran in this iteration
+            # run sim without expansion when not at intervals
+            result = self.run_simulation(selected_node)
+        # else:
+        #     # run expansion if node has been simulated before
+        #     self.run_expansion(selected_node)
+        #     # self.ordered_expansion(selected_node)
+        #     selected_node = selected_node.children[0]
+        #     if selected_node.termnode == True:
+        #         result = selected_node.termresult
+        #     else:
+        #         result = self.run_simulation(
+        #             selected_node)
+        #     # ran_sim = True  # true if a sim was ran in this iteration
 
         self.run_backpropagation(selected_node, result)
         # if ran_sim:
