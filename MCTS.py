@@ -385,6 +385,14 @@ class MCTS(object):
         # DotExporter(globals()[str(self.starting_board_state.fen())+str(0)]).to_dotfile(
         #     "tree.dot")
 
+        delete_list = []
+        for element in globals():
+            if element.startswith('r'):
+                if not (element.startswith(str(self.starting_board_state.fen())+str(0)) or element.startswith('ra')):
+                    delete_list.append(element)
+        for element in delete_list:
+            del globals()[element]
+
         return best_move, weight_list, winsim_list, score_list, globals()[str(self.starting_board_state.fen())+str(0)].wins, globals()[str(self.starting_board_state.fen())+str(0)].sims
 
     def json_export(self):

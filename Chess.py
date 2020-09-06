@@ -40,10 +40,11 @@ import StaticEval
 from chess.engine import Cp, Mate, MateGiven
 from MCTS import MCTS
 from MCTS_EPT import MCTSEPT
-from MCTS_EPT_2 import MCTSEPT2
+from MCTS_EPT_2_CP_Norm import MCTSEPT2
 from graphviz import Source
 from PIL import Image
 from Playout import Playout
+# from streamlit import caching
 # from streamlit.ReportThread import add_report_ctx
 
 
@@ -126,6 +127,10 @@ def run_algo(simulation, calc_time):
             break
     timer_status.text('Done!')
     best_move, weight_list, winsim_list, score_list, total_wins, total_sims = simulation.algo_render()
+    # caching.clear_cache()
+    # MyVariable = None
+    # print(dir())
+    # print(globals())
     return best_move, weight_list, winsim_list, score_list, total_wins, total_sims
 
 
@@ -223,6 +228,13 @@ st.beta_set_page_config(
     initial_sidebar_state="auto",
 )
 
+
+# st.cache(hash_funcs={MCTSEPT2: lambda _: None})
+# @st.cache(hash_funcs=None)
+# def func():
+#     pass
+
+
 st.title('MCTS Chess Dashboard')
 fen = st.text_input(
     'Input FEN', 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
@@ -279,9 +291,9 @@ terminal_depth = st.sidebar.slider(
 
 st.sidebar.subheader("MCTS-EPT (CP Normalized)")
 ept_2_root_c_value = st.sidebar.number_input(
-    'UCT exploration constant @ root', 0.8, key='ept_2_root_c_value')
+    'UCT exploration constant @ root', 0.8, key='ept_2_root_c_value')  # 0.8
 ept_2_c_value = st.sidebar.number_input(
-    'UCT exploration constant', 0.8, key='ept_2_c_value')
+    'UCT exploration constant', 0.8, key='ept_2_c_value')  # 0.8
 terminal_depth_2 = st.sidebar.slider(
     'Playout terminal depth', 0, 50, 3, key='ept_2_depth')
 

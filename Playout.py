@@ -51,10 +51,6 @@ class Playout(object):
         elif opponent == 'MCTS-EPT':
             self.opponent_algo = MCTSEPT(board, time=opponent_calc_time,
                                          terminal_depth=depth, C=opponent_ept_c_value, root_C=opponent_ept_root_c_value, player=False)
-        if board.turn:
-            self.original_player = True
-        else:
-            self.original_player = False
 
         globals()['num_moves_played'] = st.empty()
         self.moves_played = 0
@@ -62,7 +58,7 @@ class Playout(object):
             'Moves played: ' + str(self.moves_played))
 
         globals()['cp_score'] = st.empty()
-        self.update_cp()
+        # self.update_cp()
 
         globals()['boardholder'] = st.empty()
         self.animate_board(None)  # render starting board position
@@ -190,7 +186,7 @@ class Playout(object):
                 'Stockfish Eval: ' + info["score"].white().__str__() + '                 Static Eval: ' + str(stat_eval))
         else:
             globals()['cp_score'].text(
-                'CP: ' + info["score"].black().__str__() + '                 Stat Eval: ' + str(-stat_eval))
+                'Stockfish Eval: ' + info["score"].black().__str__() + '                 Stat Eval: ' + str(-stat_eval))
 
     def stockfish_move(self):
         # print(datetime.datetime.utcnow())
@@ -283,8 +279,7 @@ class Playout(object):
                 self.last_game_status = 'Lost (DTZ:' + str(dtz) + ')'
         return game_over
 
-    def run_algo_playout(self):
-
+    def player_turn(self):
         # update algo board state with current board, important for restarting games
         self.algo_obj.starting_board_state = self.board_state.copy()
 
@@ -308,10 +303,7 @@ class Playout(object):
         self.animate_board(best_move_uci)
         self.update_cp()
 
-        end_game = self.check_game_over()
-        if end_game:
-            return end_game
-
+    def opponent_turn(self):
         # opponent turn
         if self.opponent == 'Stockfish 11':
             opponent_best_move = self.stockfish_move()
@@ -341,16 +333,51 @@ class Playout(object):
             # random move if opponent engine best move None
             self.board_state.push(random.choice(
                 list(self.board_state.legal_moves)))
-        time.sleep(0.5)  # delay to see board state after mcts
+        # time.sleep(0.5)  # delay to see board state after mcts
         self.animate_board(opponent_best_move)
         self.update_cp()
 
-        end_game = self.check_game_over()
-        if end_game:
-            return end_game
+    def run_algo_playout(self, game_number):
+
+        if game_number % 2 == 0:
+            self.opponent_turn()
+            end_game = self.check_game_over()
+            if end_game:
+                return end_game
+
+            self.player_turn()
+            end_game = self.check_game_over()
+            if end_game:
+                return end_game
+
+        else:
+            self.player_turn()
+            end_game = self.check_game_over()
+            if end_game:
+                return end_game
+
+            self.opponent_turn()
+            end_game = self.check_game_over()
+            if end_game:
+                return end_game
+
         # tablebase_end_game = self.check_tablebase()
         # if tablebase_end_game:
         #     return tablebase_end_game
+        print(self.moves_played)
+        if self.moves_played == 50:
+            info = self.evaluation_engine.analyse(
+                self.board_state, chess.engine.Limit(depth=3))
+            stat_eval = StaticEval.evaluate_board(self.board_state)
+            if self.original_player:
+                self.last_game_status = 'Inconclusive (Stockfish: ' + \
+                    info["score"].white().__str__() + \
+                    ' | Static: ' + str(stat_eval) + ')'
+            else:
+                self.last_game_status = 'Inconclusive (Stockfish: ' + \
+                    info["score"].black().__str__() + ' | Static: ' + \
+                    str(-stat_eval) + ')'
+            end_game = True
 
         return end_game  # continue game is end_game == False
 
@@ -360,9 +387,13 @@ class Playout(object):
             end = False
             self.board_state = self.starting_board_state.copy()
             self.moves_played = 0
+            if game_number % 2 == 0:
+                self.original_player = False
+            else:
+                self.original_player = True
 
             while(not(end)):
-                end = self.run_algo_playout()
+                end = self.run_algo_playout(game_number)
                 print('Wins: ' + str(self.win_count))
                 print('Loses: ' + str(self.lose_count))
                 print('\n')

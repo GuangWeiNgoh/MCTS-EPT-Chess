@@ -37,7 +37,7 @@ class MCTSEPT2(object):
         # statistics tables.
         # pass
         print("\n")
-        print("******* MCTS-EPT 2 Object Created *******")
+        print("******* MCTS-EPT Object Created *******")
         print("\n")
         self.starting_board_state = board.copy()
         self.calc_seconds = kwargs.get('time', 30)  # default set at 30 seconds
@@ -72,34 +72,35 @@ class MCTSEPT2(object):
 
     def run_selection(self, node):
         # select child that maximizes UCB1
-        if node.depth == 0:  # use root_C for selection from root node
-            c_value = self.root_C
-        else:
-            c_value = self.C
+        while not(node.is_leaf):
+            if node.depth == 0:  # use root_C for selection from root node
+                c_value = self.root_C
+            else:
+                c_value = self.C
 
-        if node.sims == 0:  # only for root node
-            node = node.children[0]
-        else:
-            max_ucb = -math.inf
-            ucb_score = -math.inf
-            log_value = log(node.sims)
-            for each in node.children:
-                if each.sims == 0:
-                    ucb_score = math.inf
-                else:
-                    # UCT
-                    # ucb_score = ((each.score) + (c_value *
-                    #                              sqrt((2*log_value)/each.sims)))
-                    # UCB1
-                    # ucb_score = ((each.score) + (c_value *
-                    #                              sqrt(log_value/each.sims)))
-                    # UCB1-Tuned
-                    # variance = each.score * (1 - each.score)
-                    ucb_score = each.score + c_value * sqrt((log_value/each.sims) * min(1/4, (each.score * (1 - each.score) +
-                                                                                              sqrt(2*log_value/each.sims))))
-                if ucb_score > max_ucb:
-                    max_ucb = ucb_score
-                    node = each
+            if node.sims == 0:  # only for root node
+                node = node.children[0]
+            else:
+                max_ucb = -math.inf
+                ucb_score = -math.inf
+                log_value = log(node.sims)
+                for each in node.children:
+                    if each.sims == 0:
+                        ucb_score = math.inf
+                    else:
+                        # UCT
+                        # ucb_score = ((each.score) + (c_value *
+                        #                              sqrt((2*log_value)/each.sims)))
+                        # UCB1
+                        # ucb_score = ((each.score) + (c_value *
+                        #                              sqrt(log_value/each.sims)))
+                        # UCB1-Tuned
+                        # variance = each.score * (1 - each.score)
+                        ucb_score = each.score + c_value * sqrt((log_value/each.sims) * min(1/4, (each.score * (1 - each.score) +
+                                                                                                  sqrt(2*log_value/each.sims))))
+                    if ucb_score > max_ucb:
+                        max_ucb = ucb_score
+                        node = each
         return node
 
     # **********************************************************************************************************************
@@ -141,18 +142,19 @@ class MCTSEPT2(object):
 
     # **********************************************************************************************************************
 
-    def move_ordering(self, board, depth):
+    def minimax_move_ordering(self, board, is_maximizing):
         # print(datetime.datetime.utcnow())
         move_list = list(board.legal_moves)
         eval_list = []
         for move in move_list:
             board.push(move)
-            if depth % 2 == 0:
-                score = self.stockfish_eval(board)
-                # score = StaticEval.evaluate_board(board)
+            # score = StaticEval.evaluate_board(board)
+            if is_maximizing:
+                # score = self.stockfish_eval(board)
+                score = -(StaticEval.evaluate_board(board))
             else:
-                score = 1-(self.stockfish_eval(board))
-                # score = -(StaticEval.evaluate_board(board))
+                # score = 1-(self.stockfish_eval(board))
+                score = StaticEval.evaluate_board(board)
             eval_list.append((move, score))
             board.pop()
         import operator
@@ -163,6 +165,29 @@ class MCTSEPT2(object):
         return ordered_list
         # for move in ordered_list[:5]:
         #     print(move[0])
+
+    # **********************************************************************************************************************
+
+    def move_ordering(self, board, depth):
+        # print(datetime.datetime.utcnow())
+        move_list = list(board.legal_moves)
+        eval_list = []
+        for move in move_list:
+            board.push(move)
+            if depth % 2 == 0:
+                # score = self.stockfish_eval(board)
+                score = StaticEval.evaluate_board(board)
+            else:
+                # score = 1-(self.stockfish_eval(board))
+                score = -(StaticEval.evaluate_board(board))
+            eval_list.append((move, score))
+            board.pop()
+        import operator
+        ordered_list = sorted(
+            eval_list, key=operator.itemgetter(1), reverse=True)
+        # print(ordered_list)
+        # print(datetime.datetime.utcnow())
+        return ordered_list
 
     # **********************************************************************************************************************
 
@@ -299,58 +324,64 @@ class MCTSEPT2(object):
 
     # **********************************************************************************************************************
 
+    def minimax(self, depth, board, alpha, beta, is_maximizing):
+        if(depth == 0):
+            # return -stock_eval(board)
+            # return -(Playout.Playout.minimax_eval(board))
+            # return -evaluation(board)
+            return StaticEval.evaluate_board(board)
+        # legalMoves = list(board.legal_moves)
+        legalMoves = self.minimax_move_ordering(board, is_maximizing)
+        # print(str(legalMoves) + '\n')
+        if(is_maximizing):
+            bestMove = -9999
+            for move in legalMoves:
+                # move = chess.Move.from_uci(str(x))
+                board.push(move[0])
+                bestMove = max(bestMove, self.minimax(
+                    depth - 1, board, alpha, beta, not is_maximizing))
+                board.pop()
+                alpha = max(alpha, bestMove)
+                if beta <= alpha:
+                    return bestMove
+            return bestMove
+        else:
+            bestMove = 9999
+            for move in legalMoves:
+                # move = chess.Move.from_uci(str(x))
+                board.push(move[0])
+                bestMove = min(bestMove, self.minimax(
+                    depth - 1, board, alpha, beta, not is_maximizing))
+                board.pop()
+                beta = min(beta, bestMove)
+                if(beta <= alpha):
+                    return bestMove
+            return bestMove
+
+    # **********************************************************************************************************************
+
     def run_simulation(self, node):
         # convert fen string back to board object
         board_state = chess.Board(node.state)
 
-        # if self.lock_depth == True:
-        #     score = self.stockfish_eval(board_state)
-        # else:
-        if self.lock_depth == False:
-            while(node.children):
-                # print(len(node.children))
-                node = node.children[random.randint(0, len(node.children)-1)]
-                # print(node.weight)
-                # print('Directed')
-                board_state.push_san(node.weight)
-                node.sims += 1
-                if board_state.is_game_over():
-                    if board_state.is_checkmate():  # assign winner only if checkmate
-                        if board_state.turn == self.original_player:
-                            return 0.0
-                        else:
-                            return 1.0
-                    return 0.0  # is draw considered a loss for mcts-ept?
+        # minimax playout
+        # set maximizing to True if on original player depth
+        if node.depth % 2 == 0:
+            is_maximizing = False
+        else:
+            is_maximizing = True
+        # call minimax playout
+        minimax_value = self.minimax(2, board_state, -math.inf,
+                                     math.inf, is_maximizing)
 
-        # board_state.push(random.choice(list(board_state.legal_moves)))
-
-        # for move in range(self.terminal_depth):
-        #     if node.children:
-        #         # print(len(node.children))
-        #         node = node.children[random.randint(0, len(node.children)-1)]
-        #         # print(node.weight)
-        #         # print('Directed')
-        #         board_state.push_san(node.weight)
-        #     else:
-        #         # print('Random')
-        #         board_state.push(random.choice(list(board_state.legal_moves)))
-
-        #     if board_state.is_game_over():
-        #         if board_state.is_checkmate():  # assign winner only if checkmate
-        #             if board_state.turn == self.original_player:
-        #                 return 0.0
-        #             else:
-        #                 return 1.0
-        #         return 0.0  # is draw considered a loss for mcts-ept?
-
-        score = self.stockfish_eval(board_state)
+        # score = self.stockfish_eval(board_state)
 
         # stat_eval = StaticEval.evaluate_board(
         #     board_state)  # use static eval otherwise
-        # if self.original_player:
-        #     score = 1 / (1 + (10 ** -(stat_eval / 400)))
-        # else:
-        #     score = 1 / (1 + (10 ** -((-stat_eval) / 400)))
+        if self.original_player:
+            score = 1 / (1 + (10 ** -(minimax_value / 400)))
+        else:
+            score = 1 / (1 + (10 ** -((-minimax_value) / 400)))
 
         # if self.lock_depth == True:
         #     # use stockfish when mate score found
@@ -394,62 +425,48 @@ class MCTSEPT2(object):
         elif(selected_node.termnode == True):  # If terminal node is reselected by UCB1
             result = selected_node.termresult
 
-        elif(selected_node.sims == (self.calc_seconds*5) or selected_node.sims == (self.calc_seconds*10) or selected_node.sims == (self.calc_seconds*20) or selected_node.sims == (self.calc_seconds*40)):
-            # expand depth at respective intervals
-            for node in LevelOrderIter(selected_node):
-                if selected_node.sims == (self.calc_seconds*5):
-                    if node.depth == 2:
-                        break
-                    if node.is_leaf:
-                        self.ordered_expansion(node, 4)
-                elif selected_node.sims == (self.calc_seconds*10):
-                    if node.depth == 3:
-                        break
-                    if node.is_leaf:
-                        self.ordered_expansion(node, 3)
-                elif selected_node.sims == (self.calc_seconds*20):
-                    if node.depth == 4:
-                        break
-                    if node.is_leaf:
-                        self.ordered_expansion(node, 2)
-                elif selected_node.sims == (self.calc_seconds*40):
-                    if node.depth == 5:
-                        break
-                    if node.is_leaf:
-                        self.ordered_expansion(node, 1)
-            # run sim after expansion
-            result = self.run_simulation(selected_node)
-
-        # elif(selected_node.sims == (self.calc_seconds*0) or selected_node.sims == (self.calc_seconds*10)):
+        # elif(selected_node.sims == (self.calc_seconds*1) or selected_node.sims == (self.calc_seconds*10) or selected_node.sims == (self.calc_seconds*30) or selected_node.sims == (self.calc_seconds*40)):
         #     # expand depth at respective intervals
         #     for node in LevelOrderIter(selected_node):
-        #         if selected_node.sims == (self.calc_seconds*0):
+        #         if selected_node.sims == (self.calc_seconds*1):
         #             if node.depth == 2:
         #                 break
         #             if node.is_leaf:
-        #                 self.ordered_expansion(node, 5)
+        #                 self.ordered_expansion(node, 4)
         #         elif selected_node.sims == (self.calc_seconds*10):
         #             if node.depth == 3:
         #                 break
         #             if node.is_leaf:
         #                 self.ordered_expansion(node, 3)
+        #         elif selected_node.sims == (self.calc_seconds*30):
+        #             if node.depth == 4:
+        #                 break
+        #             if node.is_leaf:
+        #                 self.ordered_expansion(node, 2)
+        #         elif selected_node.sims == (self.calc_seconds*40):
+        #             if node.depth == 5:
+        #                 break
+        #             if node.is_leaf:
+        #                 self.ordered_expansion(node, 1)
         #     # run sim after expansion
         #     result = self.run_simulation(selected_node)
 
-        else:
-            # run sim without expansion when not at intervals
-            result = self.run_simulation(selected_node)
         # else:
-        #     # run expansion if node has been simulated before
-        #     self.run_expansion(selected_node)
-        #     # self.ordered_expansion(selected_node)
-        #     selected_node = selected_node.children[0]
-        #     if selected_node.termnode == True:
-        #         result = selected_node.termresult
-        #     else:
-        #         result = self.run_simulation(
-        #             selected_node)
-        #     # ran_sim = True  # true if a sim was ran in this iteration
+        #     # run sim without expansion when not at intervals
+        #     result = self.run_simulation(selected_node)
+
+        else:
+            # run expansion if node has been simulated before
+            # self.run_expansion(selected_node)
+            self.ordered_expansion(selected_node, 5)
+            # print(exp)
+            selected_node = selected_node.children[0]
+            if selected_node.termnode == True:
+                result = selected_node.termresult
+            else:
+                result = self.run_simulation(
+                    selected_node)
+            # ran_sim = True  # true if a sim was ran in this iteration
 
         self.run_backpropagation(selected_node, result)
         # if ran_sim:
@@ -466,46 +483,50 @@ class MCTSEPT2(object):
             self.starting_board_state.fen()), key=str(self.starting_board_state.fen())+str(0))
 
         # check komodo polyglot opening book if move exists
-        with chess.polyglot.open_reader("./OpeningBook/komodo.bin") as reader:
-            opening_moves = []
-            for entry in reader.find_all(self.starting_board_state):
-                opening_moves.append(entry.move)
-                break
-                # print(entry.move, entry.weight, entry.learn)
-        if opening_moves:
-            self.opening_expansion(
-                globals()[str(self.starting_board_state.fen())+str(0)], opening_moves)
-        else:
-            # generate legal moves for starting state
-            self.ordered_expansion(
-                globals()[str(self.starting_board_state.fen())+str(0)], 8)
+        # with chess.polyglot.open_reader("./OpeningBook/komodo.bin") as reader:
+        #     opening_moves = []
+        #     for entry in reader.find_all(self.starting_board_state):
+        #         opening_moves.append(entry.move)
+        #         break
+        #         # print(entry.move, entry.weight, entry.learn)
+        # if opening_moves:
+        #     self.opening_expansion(
+        #         globals()[str(self.starting_board_state.fen())+str(0)], opening_moves)
+        # else:
+        #     # generate legal moves for starting state
+        #     self.ordered_expansion(
+        #         globals()[str(self.starting_board_state.fen())+str(0)], 8)
 
-        mate_info = self.engine.analyse(
-            self.starting_board_state, chess.engine.Limit(depth=3))
-        if self.original_player:
-            # if mate_info["score"].white().__str__()[1] == '+':
-            #     self.terminal_depth = 0
-            #     self.lock_depth = True
-            try:
-                if mate_info["score"].white().__str__()[1] == '+':
-                    self.terminal_depth = 0
-                    self.lock_depth = True
-                # lock depth when high advantage, extra moves wash out meaning
-                # elif int(mate_info["score"].white().__str__()) > 2000 and int(mate_info["score"].white().__str__()) > 6382:
-                #     self.terminal_depth = 0
-                #     self.lock_depth = True
-            except:
-                print(mate_info["score"].white().__str__())
-        else:
-            if mate_info["score"].black().__str__()[1] == '+':
-                self.terminal_depth = 0
-                self.lock_depth = True
-            # elif int(mate_info["score"].black().__str__()) > 2000 and int(mate_info["score"].black().__str__()) > 6382:
-            #     self.terminal_depth = 0
-            #     self.lock_depth = True
+        # generate legal moves for starting state
+        # self.run_expansion(
+        #     globals()[str(self.starting_board_state.fen())+str(0)])
+        self.ordered_expansion(
+            globals()[str(self.starting_board_state.fen())+str(0)], 8)
 
-        # print(mate_info["score"].white().__str__())
-        # print(self.terminal_depth)
+        # lock depth to follow mate score
+        # mate_info = self.engine.analyse(
+        #     self.starting_board_state, chess.engine.Limit(depth=3))
+        # if self.original_player:
+        #     # if mate_info["score"].white().__str__()[1] == '+':
+        #     #     self.terminal_depth = 0
+        #     #     self.lock_depth = True
+        #     try:
+        #         if mate_info["score"].white().__str__()[1] == '+':
+        #             self.terminal_depth = 0
+        #             self.lock_depth = True
+        #         # lock depth when high advantage, extra moves wash out meaning
+        #         # elif int(mate_info["score"].white().__str__()) > 2000 and int(mate_info["score"].white().__str__()) > 6382:
+        #         #     self.terminal_depth = 0
+        #         #     self.lock_depth = True
+        #     except:
+        #         print(mate_info["score"].white().__str__())
+        # else:
+        #     if mate_info["score"].black().__str__()[1] == '+':
+        #         self.terminal_depth = 0
+        #         self.lock_depth = True
+        #     # elif int(mate_info["score"].black().__str__()) > 2000 and int(mate_info["score"].black().__str__()) > 6382:
+        #     #     self.terminal_depth = 0
+        #     #     self.lock_depth = True
 
         return globals()[str(self.starting_board_state.fen())+str(0)]
 
@@ -571,6 +592,14 @@ class MCTSEPT2(object):
 
         # DotExporter(globals()[str(self.starting_board_state.fen())+str(0)]).to_dotfile(
         #     "tree.dot")
+
+        delete_list = []
+        for element in globals():
+            if element.startswith('r'):
+                if not (element.startswith(str(self.starting_board_state.fen())+str(0)) or element.startswith('ra')):
+                    delete_list.append(element)
+        for element in delete_list:
+            del globals()[element]
 
         return best_move, weight_list, winsim_list, score_list, round(globals()[str(self.starting_board_state.fen())+str(0)].winsum, 2), globals()[str(self.starting_board_state.fen())+str(0)].sims
 
