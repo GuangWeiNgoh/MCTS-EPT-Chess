@@ -181,7 +181,7 @@ class Playout(object):
         info = self.evaluation_engine.analyse(
             self.board_state, chess.engine.Limit(depth=3))
         stat_eval = StaticEval.evaluate_board(self.board_state)
-        if self.original_player:
+        if self.algo_obj.original_player:
             globals()['cp_score'].text(
                 'Stockfish Eval: ' + info["score"].white().__str__() + '                 Static Eval: ' + str(stat_eval))
         else:
@@ -232,7 +232,7 @@ class Playout(object):
         if self.board_state.is_game_over():
             game_over = True  # stop game and reset
             if self.board_state.is_checkmate():  # assign winner only if checkmate
-                if self.board_state.turn == self.original_player:
+                if self.board_state.turn == self.algo_obj.original_player:
                     self.lose_count += 1
                     self.last_game_status = 'Lost (Checkmate)'
                 else:
@@ -369,7 +369,7 @@ class Playout(object):
             info = self.evaluation_engine.analyse(
                 self.board_state, chess.engine.Limit(depth=3))
             stat_eval = StaticEval.evaluate_board(self.board_state)
-            if self.original_player:
+            if self.algo_obj.original_player:
                 self.last_game_status = 'Inconclusive (Stockfish: ' + \
                     info["score"].white().__str__() + \
                     ' | Static: ' + str(stat_eval) + ')'
@@ -388,9 +388,13 @@ class Playout(object):
             self.board_state = self.starting_board_state.copy()
             self.moves_played = 0
             if game_number % 2 == 0:
-                self.original_player = False
+                # self.original_player = False
+                self.algo_obj.original_player = False
+                self.opponent_algo.original_player = True
             else:
-                self.original_player = True
+                # self.original_player = True
+                self.algo_obj.original_player = True
+                self.opponent_algo.original_player = False
 
             while(not(end)):
                 end = self.run_algo_playout(game_number)
