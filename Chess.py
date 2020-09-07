@@ -41,6 +41,7 @@ from chess.engine import Cp, Mate, MateGiven
 from MCTS import MCTS
 from MCTS_EPT import MCTSEPT
 from MCTS_EPT_2_CP_Norm import MCTSEPT2
+from MCTS_EPT_3 import MCTSEPT3
 from graphviz import Source
 from PIL import Image
 from Playout import Playout
@@ -275,19 +276,15 @@ st.sidebar.title("Parameters")
 st.sidebar.text("")
 calc_time = st.sidebar.number_input('Calculation time (seconds)', 5)
 
-st.sidebar.subheader("MCTS")
-c_value = st.sidebar.number_input(
-    'UCT exploration constant', 1.4, key='c_value')
-max_moves = st.sidebar.slider(
-    'Maximum moves per simulation (MCTS)', 0, 1000, 500)
-
-st.sidebar.subheader("MCTS-EPT")
-ept_root_c_value = st.sidebar.number_input(
-    'UCT exploration constant @ root', 3.0, key='ept_root_c_value')
-ept_c_value = st.sidebar.number_input(
-    'UCT exploration constant', 1.4, key='ept_c_value')
-terminal_depth = st.sidebar.slider(
-    'Playout terminal depth', 0, 50, 3, key='ept_depth')
+st.sidebar.subheader("MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups")
+ept_3_root_c_value = st.sidebar.number_input(
+    'UCT exploration constant @ root', 1, key='ept_3_root_c_value')  # 0.8
+ept_3_c_value = st.sidebar.number_input(
+    'UCT exploration constant', 1, key='ept_3_c_value')  # 0.8
+ept_3_alpha = st.sidebar.number_input(
+    'Heuristic influence (α)', 0.5, key='ept_3_alpha')
+terminal_depth_3 = st.sidebar.slider(
+    'Playout terminal depth', 0, 50, 3, key='ept_3_depth')
 
 st.sidebar.subheader("MCTS-EPT (CP Normalized)")
 ept_2_root_c_value = st.sidebar.number_input(
@@ -297,9 +294,23 @@ ept_2_c_value = st.sidebar.number_input(
 terminal_depth_2 = st.sidebar.slider(
     'Playout terminal depth', 0, 50, 3, key='ept_2_depth')
 
+st.sidebar.subheader("MCTS-EPT")
+ept_root_c_value = st.sidebar.number_input(
+    'UCT exploration constant @ root', 3.0, key='ept_root_c_value')
+ept_c_value = st.sidebar.number_input(
+    'UCT exploration constant', 1.4, key='ept_c_value')
+terminal_depth = st.sidebar.slider(
+    'Playout terminal depth', 0, 50, 3, key='ept_depth')
+
+st.sidebar.subheader("MCTS")
+c_value = st.sidebar.number_input(
+    'UCT exploration constant', 1.4, key='c_value')
+max_moves = st.sidebar.slider(
+    'Maximum moves per simulation (MCTS)', 0, 1000, 500)
+
 st.text("")
 algo = st.radio("Select Algorithm",
-                ('MCTS-EPT (CP Normalized)', 'MCTS-EPT', 'MCTS'))
+                ('MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups', 'MCTS-EPT (CP Normalized)', 'MCTS-EPT', 'MCTS'))
 
 # Call algo on button click
 if st.button('Generate move'):
@@ -316,6 +327,11 @@ if st.button('Generate move'):
     elif algo == 'MCTS-EPT (CP Normalized)':
         simulation = MCTSEPT2(board, time=calc_time,
                               terminal_depth=terminal_depth_2, C=ept_2_c_value, root_C=ept_2_root_c_value, player=board.turn)
+        best_move, weight_list, winsim_list, score_list, total_wins, total_sims = run_algo(
+            simulation, calc_time)
+    elif algo == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups':
+        simulation = MCTSEPT3(board, time=calc_time,
+                              terminal_depth=terminal_depth_3, C=ept_3_c_value, root_C=ept_3_root_c_value, alpha=ept_3_alpha, player=board.turn)
         best_move, weight_list, winsim_list, score_list, total_wins, total_sims = run_algo(
             simulation, calc_time)
     else:
@@ -399,6 +415,14 @@ if st.button('Start playout'):
     elif algo == 'MCTS-EPT (CP Normalized)':
         algo = MCTSEPT2(board, time=calc_time,
                         terminal_depth=terminal_depth_2, C=ept_2_c_value, root_C=ept_2_root_c_value, player=board.turn)
+        playout = Playout(board, num_games,
+                          opponent_selection, opponent_depth, algo, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value)
+        # playout.run_algo_playout()
+        playout.iterate()
+
+    elif algo == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups':
+        algo = MCTSEPT3(board, time=calc_time,
+                        terminal_depth=terminal_depth_3, C=ept_3_c_value, root_C=ept_3_root_c_value, alpha=ept_3_alpha, player=board.turn)
         playout = Playout(board, num_games,
                           opponent_selection, opponent_depth, algo, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value)
         # playout.run_algo_playout()
