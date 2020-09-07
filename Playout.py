@@ -15,6 +15,7 @@ import StaticEval
 
 from MCTS import MCTS
 from MCTS_EPT import MCTSEPT
+from MCTS_EPT_2_CP_Norm import MCTSEPT2
 from PIL import Image
 
 
@@ -51,6 +52,9 @@ class Playout(object):
         elif opponent == 'MCTS-EPT':
             self.opponent_algo = MCTSEPT(board, time=opponent_calc_time,
                                          terminal_depth=depth, C=opponent_ept_c_value, root_C=opponent_ept_root_c_value, player=False)
+        elif opponent == 'MCTS-EPT (CP Normalized)':
+            self.opponent_algo = MCTSEPT2(board, time=opponent_calc_time,
+                                          terminal_depth=depth, C=opponent_ept_c_value, root_C=opponent_ept_root_c_value, player=False)
 
         globals()['num_moves_played'] = st.empty()
         self.moves_played = 0
@@ -61,6 +65,7 @@ class Playout(object):
         # self.update_cp()
 
         globals()['boardholder'] = st.empty()
+        self.flip_board = False
         self.animate_board(None)  # render starting board position
 
         globals()['scoreboard'] = st.empty()
@@ -164,7 +169,7 @@ class Playout(object):
 
     def animate_board(self, move):  # save board state to svg then png to display
         board_svg = chess.svg.board(
-            board=self.board_state, lastmove=move)
+            board=self.board_state, lastmove=move, flipped=self.flip_board)
 
         # print(type(board_svg))
         # f = open("board.svg", "a")
@@ -309,7 +314,7 @@ class Playout(object):
             opponent_best_move = self.stockfish_move()
         elif self.opponent == 'Minimax with Alpha-Beta Pruning':
             opponent_best_move = self.minimax_move()
-        elif self.opponent == 'MCTS-EPT':
+        elif self.opponent == 'MCTS-EPT' or 'MCTS-EPT (CP Normalized)':
             # update algo board state with current board, important for restarting games
             self.opponent_algo.starting_board_state = self.board_state.copy()
             # initialize root node with children at depth 1
@@ -388,13 +393,16 @@ class Playout(object):
             self.board_state = self.starting_board_state.copy()
             self.moves_played = 0
             if game_number % 2 == 0:
-                # self.original_player = False
+                # alternate starting players
                 self.algo_obj.original_player = False
-                self.opponent_algo.original_player = True
+                self.flip_board = True
+                if self.opponent == 'MCTS-EPT':
+                    self.opponent_algo.original_player = True
             else:
-                # self.original_player = True
                 self.algo_obj.original_player = True
-                self.opponent_algo.original_player = False
+                self.flip_board = False
+                if self.opponent == 'MCTS-EPT':
+                    self.opponent_algo.original_player = False
 
             while(not(end)):
                 end = self.run_algo_playout(game_number)
