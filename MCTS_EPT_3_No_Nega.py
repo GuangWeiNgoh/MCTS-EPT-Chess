@@ -36,7 +36,7 @@ class MCTSEPT3(object):
         # arguments.  Initializes the list of game states and the
         # statistics tables.
         # pass
-        print("EPT 3")
+        print("EPT 3 No Nega")
         print("\n")
         print("******* MCTS-EPT Object Created *******")
         print("\n")
