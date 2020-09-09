@@ -41,7 +41,7 @@ from chess.engine import Cp, Mate, MateGiven
 from MCTS import MCTS
 from MCTS_EPT import MCTSEPT
 from MCTS_EPT_2_CP_Norm import MCTSEPT2
-from MCTS_EPT_3_Nega import MCTSEPT3
+from MCTS_EPT_3_Nega_Solver import MCTSEPT3
 from graphviz import Source
 from PIL import Image
 from Playout import Playout
@@ -197,6 +197,9 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 
 # black in check
 # rn2kbn1/2BppB2/bp4p1/2P5/3PP2p/p4N1P/PP3PP1/R2QK2R b KQq - 0 14
+
+# Mate in 2:
+# r2qk2r/pb4pp/1n2Pb2/2B2Q2/p1p5/2P5/2B2PPP/RN2R1K1 w - - 1 0
 
 # Mate in 3:
 # r5rk/5p1p/5R2/4B3/8/8/7P/7K w q - 0 1
