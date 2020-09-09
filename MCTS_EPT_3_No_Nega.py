@@ -27,6 +27,7 @@ from anytree.exporter import DotExporter
 from anytree.exporter import UniqueDotExporter
 from anytree.importer import JsonImporter
 from math import log, sqrt
+from operator import attrgetter  # to select child with highest eval after expansion
 
 
 class MCTSEPT3(object):
@@ -498,7 +499,8 @@ class MCTSEPT3(object):
             self.run_expansion(selected_node)
             # self.ordered_expansion(selected_node, 5)
             # print(exp)
-            selected_node = selected_node.children[0]
+            # selected_node = selected_node.children[0]
+            selected_node = max(selected_node.children, key=attrgetter('eval'))
             if selected_node.termnode == True:
                 result = selected_node.termresult
             else:

@@ -27,6 +27,7 @@ from anytree.exporter import DotExporter
 from anytree.exporter import UniqueDotExporter
 from anytree.importer import JsonImporter
 from math import log, sqrt
+from operator import attrgetter  # to select child with highest eval after expansion
 
 
 class MCTSEPT3(object):
@@ -527,7 +528,8 @@ class MCTSEPT3(object):
             self.run_expansion(selected_node)
             # self.ordered_expansion(selected_node, 5)
             # print(exp)
-            selected_node = selected_node.children[0]
+            # selected_node = selected_node.children[0]
+            selected_node = max(selected_node.children, key=attrgetter('eval'))
             if selected_node.termnode == True:
                 result = selected_node.termresult
             else:
@@ -550,25 +552,25 @@ class MCTSEPT3(object):
             self.starting_board_state.fen()), eval=0, key=str(self.starting_board_state.fen())+str(0))
 
         # check komodo polyglot opening book if move exists
-        with chess.polyglot.open_reader("./OpeningBook/komodo.bin") as reader:
-            opening_moves = []
-            for entry in reader.find_all(self.starting_board_state):
-                opening_moves.append(entry.move)
-                break
-                # print(entry.move, entry.weight, entry.learn)
-        if opening_moves:
-            self.opening_expansion(
-                globals()[str(self.starting_board_state.fen())+str(0)], opening_moves)
-        else:
-            # generate legal moves for starting state
-            # self.ordered_expansion(
-            #     globals()[str(self.starting_board_state.fen())+str(0)], 8)
-            self.run_expansion(
-                globals()[str(self.starting_board_state.fen())+str(0)])
+        # with chess.polyglot.open_reader("./OpeningBook/komodo.bin") as reader:
+        #     opening_moves = []
+        #     for entry in reader.find_all(self.starting_board_state):
+        #         opening_moves.append(entry.move)
+        #         break
+        #         # print(entry.move, entry.weight, entry.learn)
+        # if opening_moves:
+        #     self.opening_expansion(
+        #         globals()[str(self.starting_board_state.fen())+str(0)], opening_moves)
+        # else:
+        #     # generate legal moves for starting state
+        #     # self.ordered_expansion(
+        #     #     globals()[str(self.starting_board_state.fen())+str(0)], 8)
+        #     self.run_expansion(
+        #         globals()[str(self.starting_board_state.fen())+str(0)])
 
         # generate legal moves for starting state
-        # self.run_expansion(
-        #     globals()[str(self.starting_board_state.fen())+str(0)])
+        self.run_expansion(
+            globals()[str(self.starting_board_state.fen())+str(0)])
         # self.ordered_expansion(
         #     globals()[str(self.starting_board_state.fen())+str(0)], 8)
 
