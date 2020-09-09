@@ -16,7 +16,7 @@ import StaticEval
 from MCTS import MCTS
 from MCTS_EPT import MCTSEPT
 from MCTS_EPT_2_CP_Norm import MCTSEPT2
-from MCTS_EPT_3_No_Nega import MCTSEPT3
+from MCTS_EPT_3_Nega import MCTSEPT3
 from PIL import Image
 
 
