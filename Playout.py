@@ -225,8 +225,10 @@ class Playout(object):
         # print(datetime.datetime.utcnow())
         # best_move = MinimaxAlphaBetaPruning.minimaxRoot(
         #     self.search_depth, self.board_state, True)
+        # best_move = self.minimaxRoot(
+        #     self.search_depth, self.board_state, True)
         best_move = self.minimaxRoot(
-            self.search_depth, self.board_state, True)
+            self.search_depth, self.board_state, self.algo_obj.original_player)
         # print(datetime.datetime.utcnow())
         return best_move
 
@@ -400,12 +402,12 @@ class Playout(object):
                 # alternate starting players
                 self.algo_obj.original_player = False
                 self.flip_board = True
-                if self.opponent == 'MCTS-EPT':
+                if self.opponent == 'MCTS-EPT' or self.opponent == 'MCTS-EPT (CP Normalized)' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups':
                     self.opponent_algo.original_player = True
             else:
                 self.algo_obj.original_player = True
                 self.flip_board = False
-                if self.opponent == 'MCTS-EPT':
+                if self.opponent == 'MCTS-EPT' or self.opponent == 'MCTS-EPT (CP Normalized)' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups':
                     self.opponent_algo.original_player = False
 
             while(not(end)):
