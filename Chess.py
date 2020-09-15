@@ -260,13 +260,16 @@ try:
     else:
         st.text('BLACK to play')
         st.text('CP: ' + str(info['score']))
-    static = StaticEval.evaluate_board(board)
-    st.text(str(static))
+    # static = StaticEval.evaluate_board(board)
+    # st.text(str(static))
     engine.quit()  # Exit stockfish engine
     board_svg = chess.svg.board(board=board)
     render_svg(board_svg)
 except:
     st.write('Invalid Fen')
+
+static = StaticEval.evaluate_board(board)
+st.text(str(static))
 
 # with chess.syzygy.open_tablebase("syzygy/3-4-5") as tablebase:
 #     board = chess.Board("8/2K5/4B3/3N4/8/8/4k3/8 b - - 0 1")
