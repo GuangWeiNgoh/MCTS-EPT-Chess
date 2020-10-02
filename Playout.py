@@ -16,13 +16,15 @@ import StaticEval
 from MCTS import MCTS
 from MCTS_EPT import MCTSEPT
 from MCTS_EPT_2_CP_Norm import MCTSEPT2
-from MCTS_EPT_3_Nega import MCTSEPT3
+from MCTS_EPT_3_No_Nega import MCTSEPT3 as MCTSEPT3
+from MCTS_EPT_3_Nega import MCTSEPT3 as MCTSEPT3_Nega
+from MCTS_EPT_3_Nega_Solver import MCTSEPT3 as MCTSEPT3_Nega_Solver
 from PIL import Image
 
 
 class Playout(object):
 
-    def __init__(self, board, games, opponent, depth, algo_obj, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value):
+    def __init__(self, board, games, opponent, depth, algo_obj, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value, opponent_alpha_value):
         self.starting_board_state = board
         self.board_state = board
         self.num_games = games
@@ -58,7 +60,13 @@ class Playout(object):
                                           terminal_depth=depth, C=opponent_ept_c_value, root_C=opponent_ept_root_c_value, player=False)
         elif opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups':
             self.opponent_algo = MCTSEPT3(board, time=opponent_calc_time,
-                                          terminal_depth=depth, C=opponent_ept_c_value, root_C=opponent_ept_root_c_value, player=False)
+                                          terminal_depth=depth, C=opponent_ept_c_value, root_C=opponent_ept_root_c_value, alpha=opponent_alpha_value, player=False)
+        elif opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups & Negation':
+            self.opponent_algo = MCTSEPT3_Nega(board, time=opponent_calc_time,
+                                               terminal_depth=depth, C=opponent_ept_c_value, root_C=opponent_ept_root_c_value, alpha=opponent_alpha_value, player=False)
+        elif opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups, Negation & Solver':
+            self.opponent_algo = MCTSEPT3_Nega_Solver(board, time=opponent_calc_time,
+                                                      terminal_depth=depth, C=opponent_ept_c_value, root_C=opponent_ept_root_c_value, alpha=opponent_alpha_value, player=False)
 
         globals()['num_moves_played'] = st.empty()
         self.moves_played = 0
@@ -320,7 +328,7 @@ class Playout(object):
             opponent_best_move = self.stockfish_move()
         elif self.opponent == 'Minimax with Alpha-Beta Pruning':
             opponent_best_move = self.minimax_move()
-        elif self.opponent == 'MCTS-EPT' or self.opponent == 'MCTS-EPT (CP Normalized)' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups':
+        elif self.opponent == 'MCTS-EPT' or self.opponent == 'MCTS-EPT (CP Normalized)' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups & Negation' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups, Negation & Solver':
             # update algo board state with current board, important for restarting games
             self.opponent_algo.starting_board_state = self.board_state.copy()
             # initialize root node with children at depth 1

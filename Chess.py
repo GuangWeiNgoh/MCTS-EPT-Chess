@@ -36,12 +36,16 @@ import base64  # svg
 # import threading
 import random
 import StaticEval
+from collections import OrderedDict  # Xewali eval
 
 from chess.engine import Cp, Mate, MateGiven
 from MCTS import MCTS
 from MCTS_EPT import MCTSEPT
 from MCTS_EPT_2_CP_Norm import MCTSEPT2
-from MCTS_EPT_3_Nega_Solver import MCTSEPT3
+# from MCTS_EPT_3_Nega_Solver import MCTSEPT3
+from MCTS_EPT_3_No_Nega import MCTSEPT3 as MCTSEPT3
+from MCTS_EPT_3_Nega import MCTSEPT3 as MCTSEPT3_Nega
+from MCTS_EPT_3_Nega_Solver import MCTSEPT3 as MCTSEPT3_Nega_Solver
 from graphviz import Source
 from PIL import Image
 from Playout import Playout
@@ -185,6 +189,37 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
     st.balloons()
 
 
+# class Attacker():
+#     def __init__(self, color, influence, sq):
+#         #print(color, " ", influence, " ", sq)
+#         self.color = color
+#         self.influence = influence
+#         self.sq = sq
+
+
+# def evaluate(board):
+#     attacks_on = OrderedDict()
+#     for x in chess.SQUARES:
+#         sq_from = chess.SQUARE_NAMES[x]
+#         piece = board.piece_at(x)
+#         if piece == None:
+#             continue
+#         else:
+#             color = chess.COLOR_NAMES[piece.color]
+#             atks = board.attacks(x)
+#             sqs_to = [chess.SQUARE_NAMES[sq] for sq in atks]
+#             for sq_to in sqs_to:
+#                 attacker = Attacker(color, len(sqs_to), sq_from)
+#                 if sq_to in attacks_on:
+#                     attacks_on[sq_to].append(attacker)
+#                 else:
+#                     attacks_on[sq_to] = [attacker]
+
+#     for k, v in attacks_on.items():
+#         print(f'\nSquare {k} is attacked by')
+#         for atk in v:
+#             print(f'{atk.color} Piece at {atk.sq} with influence {atk.influence}')
+
 # rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 # r1bqkbnr/p1pp1ppp/1pn5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4
 # rn2kbn1/2Bppp2/bp4p1/2P5/2BPP2p/p4N1P/PP3PP1/R2QK2R w KQq - 1 14
@@ -223,6 +258,7 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
 # print(Mate(2).score(mate_score=100000))
 # score = 1 / (1 + (10 ** -(6382 / 400)))
 # print(score)
+
 
 # Streamlit
 st.beta_set_page_config(
@@ -270,6 +306,8 @@ except:
 
 static = StaticEval.evaluate_board(board)
 st.text(str(static))
+# static2 = evaluate(board)
+# st.text(str(static2))
 
 # with chess.syzygy.open_tablebase("syzygy/3-4-5") as tablebase:
 #     board = chess.Board("8/2K5/4B3/3N4/8/8/4k3/8 b - - 0 1")
@@ -318,7 +356,7 @@ max_moves = st.sidebar.slider(
 
 st.text("")
 algo = st.radio("Select Algorithm",
-                ('MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups', 'MCTS-EPT (CP Normalized)', 'MCTS-EPT', 'MCTS'))
+                ('MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups, Negation & Solver', 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups & Negation', 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups', 'MCTS-EPT (CP Normalized)', 'MCTS-EPT', 'MCTS'))
 
 # Call algo on button click
 if st.button('Generate move'):
@@ -342,6 +380,16 @@ if st.button('Generate move'):
                               terminal_depth=terminal_depth_3, C=ept_3_c_value, root_C=ept_3_root_c_value, alpha=ept_3_alpha, player=board.turn)
         best_move, weight_list, winsim_list, score_list, total_wins, total_sims = run_algo(
             simulation, calc_time)
+    elif algo == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups & Negation':
+        simulation = MCTSEPT3_Nega(board, time=calc_time,
+                                   terminal_depth=terminal_depth_3, C=ept_3_c_value, root_C=ept_3_root_c_value, alpha=ept_3_alpha, player=board.turn)
+        best_move, weight_list, winsim_list, score_list, total_wins, total_sims = run_algo(
+            simulation, calc_time)
+    elif algo == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups, Negation & Solver':
+        simulation = MCTSEPT3_Nega_Solver(board, time=calc_time,
+                                          terminal_depth=terminal_depth_3, C=ept_3_c_value, root_C=ept_3_root_c_value, alpha=ept_3_alpha, player=board.turn)
+        best_move, weight_list, winsim_list, score_list, total_wins, total_sims = run_algo(
+            simulation, calc_time)
     else:
         st.write('No algorithm selected')
     show_stats(best_move, weight_list, winsim_list,
@@ -353,7 +401,7 @@ num_games = st.number_input(
     'Number of games', 1, key='num_games')
 
 opponent_selection = st.selectbox(
-    'Opponent engine', ('MCTS-EPT', 'MCTS-EPT (CP Normalized)', 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups', 'Minimax with Alpha-Beta Pruning', 'Irina (1200 Elo)', 'CDrill (1800 Elo)', 'Clarabit (2058 Elo)', 'Stockfish 11'))
+    'Opponent engine', ('MCTS-EPT', 'MCTS-EPT (CP Normalized)', 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups', 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups & Negation', 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups, Negation & Solver', 'Minimax with Alpha-Beta Pruning', 'Irina (1200 Elo)', 'CDrill (1800 Elo)', 'Clarabit (2058 Elo)', 'Stockfish 11'))
 
 if opponent_selection == 'Stockfish 11':
     opponent_depth = st.slider(
@@ -361,30 +409,35 @@ if opponent_selection == 'Stockfish 11':
     opponent_calc_time = 0
     opponent_ept_root_c_value = 0
     opponent_ept_c_value = 0
+    opponent_alpha_value = 0
 elif opponent_selection == 'Irina (1200 Elo)':
     opponent_depth = st.slider(
         'Irina search time', 0, 20, 5, key='irina_depth')
     opponent_calc_time = 0
     opponent_ept_root_c_value = 0
     opponent_ept_c_value = 0
+    opponent_alpha_value = 0
 elif opponent_selection == 'CDrill (1800 Elo)':
     opponent_depth = st.slider(
         'CDrill search time', 0, 20, 5, key='cdrill_depth')
     opponent_calc_time = 0
     opponent_ept_root_c_value = 0
     opponent_ept_c_value = 0
+    opponent_alpha_value = 0
 elif opponent_selection == 'Clarabit (2058 Elo)':
     opponent_depth = st.slider(
         'Clarabit search time', 0, 20, 5, key='clarabit_depth')
     opponent_calc_time = 0
     opponent_ept_root_c_value = 0
     opponent_ept_c_value = 0
+    opponent_alpha_value = 0
 elif opponent_selection == 'Minimax with Alpha-Beta Pruning':
     opponent_depth = st.slider(
         'Minimax search depth', 0, 20, 4, key='minimax_depth')
     opponent_calc_time = 0
     opponent_ept_root_c_value = 0
     opponent_ept_c_value = 0
+    opponent_alpha_value = 0
 elif opponent_selection == 'MCTS-EPT':
     opponent_calc_time = st.number_input(
         'Calculation time (seconds)', 5, key='opponent_calc_time')
@@ -394,6 +447,7 @@ elif opponent_selection == 'MCTS-EPT':
         'UCT exploration constant @ root', 3.0, key='opponent_ept_root_c_value')
     opponent_ept_c_value = st.number_input(
         'UCT exploration constant', 1.4, key='opponent_ept_c_value')
+    opponent_alpha_value = 0
 elif opponent_selection == 'MCTS-EPT (CP Normalized)':
     opponent_calc_time = st.number_input(
         'Calculation time (seconds)', 5, key='opponent_calc_time')
@@ -403,6 +457,7 @@ elif opponent_selection == 'MCTS-EPT (CP Normalized)':
         'UCT exploration constant @ root', 0.8, key='opponent_ept_root_c_value')
     opponent_ept_c_value = st.number_input(
         'UCT exploration constant', 0.8, key='opponent_ept_c_value')
+    opponent_alpha_value = 0
 elif opponent_selection == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups':
     opponent_calc_time = st.number_input(
         'Calculation time (seconds)', 5, key='opponent_calc_time')
@@ -412,6 +467,30 @@ elif opponent_selection == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups
         'UCT exploration constant @ root', 0.8, key='opponent_ept_root_c_value')
     opponent_ept_c_value = st.number_input(
         'UCT exploration constant', 0.8, key='opponent_ept_c_value')
+    opponent_alpha_value = st.number_input(
+        'UCT exploration constant', 0.5, key='opponent_alpha_value')
+elif opponent_selection == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups & Negation':
+    opponent_calc_time = st.number_input(
+        'Calculation time (seconds)', 5, key='opponent_calc_time')
+    opponent_depth = st.slider(
+        'MCTS-EPT terminal depth', 0, 20, 3, key='opponent_ept_depth')
+    opponent_ept_root_c_value = st.number_input(
+        'UCT exploration constant @ root', 0.8, key='opponent_ept_root_c_value')
+    opponent_ept_c_value = st.number_input(
+        'UCT exploration constant', 0.8, key='opponent_ept_c_value')
+    opponent_alpha_value = st.number_input(
+        'UCT exploration constant', 0.5, key='opponent_alpha_value')
+elif opponent_selection == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups, Negation & Solver':
+    opponent_calc_time = st.number_input(
+        'Calculation time (seconds)', 5, key='opponent_calc_time')
+    opponent_depth = st.slider(
+        'MCTS-EPT terminal depth', 0, 20, 3, key='opponent_ept_depth')
+    opponent_ept_root_c_value = st.number_input(
+        'UCT exploration constant @ root', 0.8, key='opponent_ept_root_c_value')
+    opponent_ept_c_value = st.number_input(
+        'UCT exploration constant', 0.8, key='opponent_ept_c_value')
+    opponent_alpha_value = st.number_input(
+        'UCT exploration constant', 0.5, key='opponent_alpha_value')
 
 
 if st.button('Start playout'):
@@ -426,7 +505,7 @@ if st.button('Start playout'):
         algo = MCTS(board, time=calc_time,
                     max_moves=max_moves, C=c_value, player=board.turn)
         playout = Playout(board, num_games,
-                          opponent_selection, opponent_depth, algo, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value)
+                          opponent_selection, opponent_depth, algo, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value, opponent_alpha_value)
         # playout.run_algo_playout()
         playout.iterate()
 
@@ -434,7 +513,7 @@ if st.button('Start playout'):
         algo = MCTSEPT(board, time=calc_time,
                        terminal_depth=terminal_depth, C=ept_c_value, root_C=ept_root_c_value, player=board.turn)
         playout = Playout(board, num_games,
-                          opponent_selection, opponent_depth, algo, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value)
+                          opponent_selection, opponent_depth, algo, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value, opponent_alpha_value)
         # playout.run_algo_playout()
         playout.iterate()
 
@@ -442,7 +521,7 @@ if st.button('Start playout'):
         algo = MCTSEPT2(board, time=calc_time,
                         terminal_depth=terminal_depth_2, C=ept_2_c_value, root_C=ept_2_root_c_value, player=board.turn)
         playout = Playout(board, num_games,
-                          opponent_selection, opponent_depth, algo, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value)
+                          opponent_selection, opponent_depth, algo, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value, opponent_alpha_value)
         # playout.run_algo_playout()
         playout.iterate()
 
@@ -450,7 +529,23 @@ if st.button('Start playout'):
         algo = MCTSEPT3(board, time=calc_time,
                         terminal_depth=terminal_depth_3, C=ept_3_c_value, root_C=ept_3_root_c_value, alpha=ept_3_alpha, player=board.turn)
         playout = Playout(board, num_games,
-                          opponent_selection, opponent_depth, algo, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value)
+                          opponent_selection, opponent_depth, algo, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value, opponent_alpha_value)
+        # playout.run_algo_playout()
+        playout.iterate()
+
+    elif algo == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups & Negation':
+        algo = MCTSEPT3_Nega(board, time=calc_time,
+                             terminal_depth=terminal_depth_3, C=ept_3_c_value, root_C=ept_3_root_c_value, alpha=ept_3_alpha, player=board.turn)
+        playout = Playout(board, num_games,
+                          opponent_selection, opponent_depth, algo, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value, opponent_alpha_value)
+        # playout.run_algo_playout()
+        playout.iterate()
+
+    elif algo == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups, Negation & Solver':
+        algo = MCTSEPT3_Nega_Solver(board, time=calc_time,
+                                    terminal_depth=terminal_depth_3, C=ept_3_c_value, root_C=ept_3_root_c_value, alpha=ept_3_alpha, player=board.turn)
+        playout = Playout(board, num_games,
+                          opponent_selection, opponent_depth, algo, opponent_calc_time, opponent_ept_root_c_value, opponent_ept_c_value, opponent_alpha_value)
         # playout.run_algo_playout()
         playout.iterate()
 
