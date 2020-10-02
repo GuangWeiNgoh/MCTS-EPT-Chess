@@ -37,9 +37,8 @@ class MCTSEPT3(object):
         # arguments.  Initializes the list of game states and the
         # statistics tables.
         # pass
-        print("EPT 3 Nega")
         print("\n")
-        print("******* MCTS-EPT Object Created *******")
+        print("******* MCTS-EPT Nega Object Created *******")
         print("\n")
         self.starting_board_state = board.copy()
         self.calc_seconds = kwargs.get('time', 30)  # default set at 30 seconds

@@ -37,7 +37,7 @@ class MCTSEPT2(object):
         # statistics tables.
         # pass
         print("\n")
-        print("******* MCTS-EPT Object Created *******")
+        print("******* MCTS-EPT CP Norm Object Created *******")
         print("\n")
         self.starting_board_state = board.copy()
         self.calc_seconds = kwargs.get('time', 30)  # default set at 30 seconds
