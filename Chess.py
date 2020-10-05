@@ -274,10 +274,10 @@ st.beta_set_page_config(
 # def func():
 #     pass
 
-
+# rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 st.title('MCTS Chess Dashboard')
 fen = st.text_input(
-    'Input FEN', 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+    'Input FEN', 'r4rk1/1pqn1pb1/p2p1np1/3Pp2p/8/1N2BP2/PPPQB1PP/1K1R3R w - - 6 15')
 try:
     board = chess.Board(fen)
     # Evalutate score using stockfish evaluation

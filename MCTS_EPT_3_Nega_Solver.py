@@ -706,6 +706,7 @@ class MCTSEPT3(object):
         #         break
         #         # print(entry.move, entry.weight, entry.learn)
         # if opening_moves:
+        #     print("In Book")
         #     self.opening_expansion(
         #         globals()[str(self.starting_board_state.fen())+str(0)], opening_moves)
         # else:

@@ -324,6 +324,7 @@ class Playout(object):
             'Moves played: ' + str(self.moves_played))
         self.animate_board(best_move_uci)
         self.update_cp()
+        print(self.board_state.fen() + '\n')
 
     def opponent_turn(self):
         # opponent turn
@@ -358,6 +359,7 @@ class Playout(object):
         # time.sleep(0.5)  # delay to see board state after mcts
         self.animate_board(opponent_best_move)
         self.update_cp()
+        print(self.board_state.fen() + '\n')
 
     def run_algo_playout(self, game_number):
 
