@@ -43,7 +43,7 @@ class MCTS(object):
         self.calc_time = datetime.timedelta(seconds=seconds)
         print("Calculation time: " + str(self.calc_time))
         print("\n")
-        self.max_moves = kwargs.get('max_moves', 100)
+        self.max_moves = kwargs.get('max_moves', 1000)
         print("Maximum moves: " + str(self.max_moves))
         print("\n")
         self.C = kwargs.get('C', 1.4)  # UCT exploration constant

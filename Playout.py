@@ -52,6 +52,9 @@ class Playout(object):
         elif opponent == 'Clarabit (2058 Elo)':
             self.opponent_engine = chess.engine.SimpleEngine.popen_uci(
                 "./Engines/Clarabit/clarabit_100_x32_win.exe")
+        elif opponent == 'MCTS':
+            self.opponent_algo = MCTS(board, time=opponent_calc_time,
+                                      max_moves=1000, C=opponent_ept_c_value, player=False)
         elif opponent == 'MCTS-EPT':
             self.opponent_algo = MCTSEPT(board, time=opponent_calc_time,
                                          terminal_depth=depth, C=opponent_ept_c_value, root_C=opponent_ept_root_c_value, player=False)
@@ -328,7 +331,7 @@ class Playout(object):
             opponent_best_move = self.stockfish_move()
         elif self.opponent == 'Minimax with Alpha-Beta Pruning':
             opponent_best_move = self.minimax_move()
-        elif self.opponent == 'MCTS-EPT' or self.opponent == 'MCTS-EPT (CP Normalized)' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups & Negation' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups, Negation & Solver':
+        elif self.opponent == 'MCTS' or self.opponent == 'MCTS-EPT' or self.opponent == 'MCTS-EPT (CP Normalized)' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups & Negation' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups, Negation & Solver':
             # update algo board state with current board, important for restarting games
             self.opponent_algo.starting_board_state = self.board_state.copy()
             # initialize root node with children at depth 1
@@ -410,12 +413,12 @@ class Playout(object):
                 # alternate starting players
                 self.algo_obj.original_player = False
                 self.flip_board = True
-                if self.opponent == 'MCTS-EPT' or self.opponent == 'MCTS-EPT (CP Normalized)' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups':
+                if self.opponent == 'MCTS' or self.opponent == 'MCTS-EPT' or self.opponent == 'MCTS-EPT (CP Normalized)' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups & Negation' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups, Negation & Solver':
                     self.opponent_algo.original_player = True
             else:
                 self.algo_obj.original_player = True
                 self.flip_board = False
-                if self.opponent == 'MCTS-EPT' or self.opponent == 'MCTS-EPT (CP Normalized)' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups':
+                if self.opponent == 'MCTS' or self.opponent == 'MCTS-EPT' or self.opponent == 'MCTS-EPT (CP Normalized)' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups & Negation' or self.opponent == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups, Negation & Solver':
                     self.opponent_algo.original_player = False
 
             while(not(end)):

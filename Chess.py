@@ -401,7 +401,7 @@ num_games = st.number_input(
     'Number of games', 1, key='num_games')
 
 opponent_selection = st.selectbox(
-    'Opponent engine', ('MCTS-EPT', 'MCTS-EPT (CP Normalized)', 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups', 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups & Negation', 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups, Negation & Solver', 'Minimax with Alpha-Beta Pruning', 'Irina (1200 Elo)', 'CDrill (1800 Elo)', 'Clarabit (2058 Elo)', 'Stockfish 11'))
+    'Opponent engine', ('MCTS', 'MCTS-EPT', 'MCTS-EPT (CP Normalized)', 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups', 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups & Negation', 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups, Negation & Solver', 'Minimax with Alpha-Beta Pruning', 'Irina (1200 Elo)', 'CDrill (1800 Elo)', 'Clarabit (2058 Elo)', 'Stockfish 11'))
 
 if opponent_selection == 'Stockfish 11':
     opponent_depth = st.slider(
@@ -438,6 +438,14 @@ elif opponent_selection == 'Minimax with Alpha-Beta Pruning':
     opponent_ept_root_c_value = 0
     opponent_ept_c_value = 0
     opponent_alpha_value = 0
+elif opponent_selection == 'MCTS':
+    opponent_calc_time = st.number_input(
+        'Calculation time (seconds)', 5, key='opponent_calc_time')
+    opponent_depth = 0
+    opponent_ept_root_c_value = 0
+    opponent_ept_c_value = st.number_input(
+        'UCT exploration constant', 1.4, key='opponent_ept_c_value')
+    opponent_alpha_value = 0
 elif opponent_selection == 'MCTS-EPT':
     opponent_calc_time = st.number_input(
         'Calculation time (seconds)', 5, key='opponent_calc_time')
@@ -468,7 +476,7 @@ elif opponent_selection == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups
     opponent_ept_c_value = st.number_input(
         'UCT exploration constant', 0.8, key='opponent_ept_c_value')
     opponent_alpha_value = st.number_input(
-        'UCT exploration constant', 0.5, key='opponent_alpha_value')
+        'Heuristic influence (α)', 0.5, key='opponent_alpha_value')
 elif opponent_selection == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups & Negation':
     opponent_calc_time = st.number_input(
         'Calculation time (seconds)', 5, key='opponent_calc_time')
@@ -479,7 +487,7 @@ elif opponent_selection == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups
     opponent_ept_c_value = st.number_input(
         'UCT exploration constant', 0.8, key='opponent_ept_c_value')
     opponent_alpha_value = st.number_input(
-        'UCT exploration constant', 0.5, key='opponent_alpha_value')
+        'Heuristic influence (α)', 0.5, key='opponent_alpha_value')
 elif opponent_selection == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups, Negation & Solver':
     opponent_calc_time = st.number_input(
         'Calculation time (seconds)', 5, key='opponent_calc_time')
@@ -490,7 +498,7 @@ elif opponent_selection == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups
     opponent_ept_c_value = st.number_input(
         'UCT exploration constant', 0.8, key='opponent_ept_c_value')
     opponent_alpha_value = st.number_input(
-        'UCT exploration constant', 0.5, key='opponent_alpha_value')
+        'Heuristic influence (α)', 0.5, key='opponent_alpha_value')
 
 
 if st.button('Start playout'):
