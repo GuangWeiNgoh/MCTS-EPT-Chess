@@ -304,8 +304,8 @@ try:
 except:
     st.write('Invalid Fen')
 
-static = StaticEval.evaluate_board(board)
-st.text(str(static))
+# static = StaticEval.evaluate_board(board)
+# st.text(str(static))
 # static2 = evaluate(board)
 # st.text(str(static2))
 
@@ -444,7 +444,7 @@ elif opponent_selection == 'MCTS':
     opponent_depth = 0
     opponent_ept_root_c_value = 0
     opponent_ept_c_value = st.number_input(
-        'UCT exploration constant', 1.4, key='opponent_ept_c_value')
+        'UCT exploration constant', 0.8, key='opponent_ept_c_value')
     opponent_alpha_value = 0
 elif opponent_selection == 'MCTS-EPT':
     opponent_calc_time = st.number_input(
@@ -452,9 +452,9 @@ elif opponent_selection == 'MCTS-EPT':
     opponent_depth = st.slider(
         'MCTS-EPT terminal depth', 0, 20, 3, key='opponent_ept_depth')
     opponent_ept_root_c_value = st.number_input(
-        'UCT exploration constant @ root', 3.0, key='opponent_ept_root_c_value')
+        'UCT exploration constant @ root', 0.8, key='opponent_ept_root_c_value')
     opponent_ept_c_value = st.number_input(
-        'UCT exploration constant', 1.4, key='opponent_ept_c_value')
+        'UCT exploration constant', 0.8, key='opponent_ept_c_value')
     opponent_alpha_value = 0
 elif opponent_selection == 'MCTS-EPT (CP Normalized)':
     opponent_calc_time = st.number_input(
