@@ -37,7 +37,7 @@ class MCTSEPT2(object):
         # statistics tables.
         # pass
         print("\n")
-        print("******* MCTS-EPT CP Norm Object Created *******")
+        print("******* MCTS-EPT CP Norm Tuned Object Created *******")
         print("\n")
         self.starting_board_state = board.copy()
         self.calc_seconds = kwargs.get('time', 30)  # default set at 30 seconds
@@ -89,15 +89,15 @@ class MCTSEPT2(object):
                         ucb_score = math.inf
                     else:
                         # UCT
-                        ucb_score = ((each.score) + (c_value *
-                                                     sqrt((2*log_value)/each.sims)))
+                        # ucb_score = ((each.score) + (c_value *
+                        #                              sqrt((2*log_value)/each.sims)))
                         # UCB1
                         # ucb_score = ((each.score) + (c_value *
                         #                              sqrt(log_value/each.sims)))
                         # UCB1-Tuned
                         # variance = each.score * (1 - each.score)
-                        # ucb_score = each.score + c_value * sqrt((log_value/each.sims) * min(1/4, (each.score * (1 - each.score) +
-                        #                                                                           sqrt(2*log_value/each.sims))))
+                        ucb_score = each.score + c_value * sqrt((log_value/each.sims) * min(1/4, (each.score * (1 - each.score) +
+                                                                                                  sqrt(2*log_value/each.sims))))
                     if ucb_score > max_ucb:
                         max_ucb = ucb_score
                         node = each
