@@ -628,6 +628,12 @@ class MCTSEPT3(object):
         # ran_sim = False
         selected_node = self.run_selection(root)
         end_sim = False
+        # if selected_node.termnode == True:
+        #     result = selected_node.termresult
+        # elif(selected_node.sims == 0):
+        #     result = self.run_simulation(
+        #         selected_node)
+
         if(selected_node.sims == 0):
 
             if selected_node.termnode == False:  # run simulation if it is not terminal
@@ -639,36 +645,6 @@ class MCTSEPT3(object):
 
         elif(selected_node.termnode == True):  # If terminal node is reselected by UCB1
             result = selected_node.termresult
-
-        # elif(selected_node.sims == (self.calc_seconds*1) or selected_node.sims == (self.calc_seconds*10) or selected_node.sims == (self.calc_seconds*30) or selected_node.sims == (self.calc_seconds*40)):
-        #     # expand depth at respective intervals
-        #     for node in LevelOrderIter(selected_node):
-        #         if selected_node.sims == (self.calc_seconds*1):
-        #             if node.depth == 2:
-        #                 break
-        #             if node.is_leaf:
-        #                 self.ordered_expansion(node, 4)
-        #         elif selected_node.sims == (self.calc_seconds*10):
-        #             if node.depth == 3:
-        #                 break
-        #             if node.is_leaf:
-        #                 self.ordered_expansion(node, 3)
-        #         elif selected_node.sims == (self.calc_seconds*30):
-        #             if node.depth == 4:
-        #                 break
-        #             if node.is_leaf:
-        #                 self.ordered_expansion(node, 2)
-        #         elif selected_node.sims == (self.calc_seconds*40):
-        #             if node.depth == 5:
-        #                 break
-        #             if node.is_leaf:
-        #                 self.ordered_expansion(node, 1)
-        #     # run sim after expansion
-        #     result = self.run_simulation(selected_node)
-
-        # else:
-        #     # run sim without expansion when not at intervals
-        #     result = self.run_simulation(selected_node)
 
         else:
             # run expansion if node has been simulated before
