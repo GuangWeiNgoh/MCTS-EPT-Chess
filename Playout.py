@@ -116,7 +116,10 @@ class Playout(object):
             # return -self.stock_eval(board)
             # return -(Playout.Playout.minimax_eval(board))
             # return -evaluation(board)
-            return -StaticEval.evaluate_board(board)
+            if(is_maximizing):
+                return StaticEval.evaluate_board(board)
+            else:
+                return -StaticEval.evaluate_board(board)
         possibleMoves = board.legal_moves
         if(is_maximizing):
             bestMove = -9999
@@ -143,27 +146,27 @@ class Playout(object):
                     return bestMove
             return bestMove
 
-    def calculateMove(self, board):
-        possible_moves = board.legal_moves
-        if(len(possible_moves) == 0):
-            print("No more possible moves...Game Over")
-            sys.exit()
-        bestMove = None
-        bestValue = -9999
-        n = 0
-        for x in possible_moves:
-            move = chess.Move.from_uci(str(x))
-            board.push(move)
-            # boardValue = -self.stock_eval(board)
-            # boardValue = -(Playout.Playout.minimax_eval(board))
-            # boardValue = -evaluation(board)
-            boardValue = -StaticEval.evaluate_board(board)
-            board.pop()
-            if(boardValue > bestValue):
-                bestValue = boardValue
-                bestMove = move
+    # def calculateMove(self, board):
+    #     possible_moves = board.legal_moves
+    #     if(len(possible_moves) == 0):
+    #         print("No more possible moves...Game Over")
+    #         sys.exit()
+    #     bestMove = None
+    #     bestValue = -9999
+    #     n = 0
+    #     for x in possible_moves:
+    #         move = chess.Move.from_uci(str(x))
+    #         board.push(move)
+    #         # boardValue = -self.stock_eval(board)
+    #         # boardValue = -(Playout.Playout.minimax_eval(board))
+    #         # boardValue = -evaluation(board)
+    #         boardValue = -StaticEval.evaluate_board(board)
+    #         board.pop()
+    #         if(boardValue > bestValue):
+    #             bestValue = boardValue
+    #             bestMove = move
 
-        return bestMove
+    #     return bestMove
 
     def stock_eval(self, board):
         # engine = chess.engine.SimpleEngine.popen_uci("stockfish.exe")
@@ -239,7 +242,9 @@ class Playout(object):
         # best_move = self.minimaxRoot(
         #     self.search_depth, self.board_state, True)
         best_move = self.minimaxRoot(
-            self.search_depth, self.board_state, self.algo_obj.original_player)
+            self.search_depth, self.board_state, not self.algo_obj.original_player)
+        # best_move = self.minimaxRoot(
+        #     self.search_depth, self.board_state, True)
         # print(datetime.datetime.utcnow())
         return best_move
 
