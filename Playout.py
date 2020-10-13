@@ -116,10 +116,14 @@ class Playout(object):
             # return -self.stock_eval(board)
             # return -(Playout.Playout.minimax_eval(board))
             # return -evaluation(board)
-            if(is_maximizing):
+            if self.game_number % 2 == 0:
                 return StaticEval.evaluate_board(board)
             else:
                 return -StaticEval.evaluate_board(board)
+            # if(is_maximizing):
+            #     return -StaticEval.evaluate_board(board)
+            # else:
+            #     return -StaticEval.evaluate_board(board)
         possibleMoves = board.legal_moves
         if(is_maximizing):
             bestMove = -9999
@@ -241,8 +245,13 @@ class Playout(object):
         #     self.search_depth, self.board_state, True)
         # best_move = self.minimaxRoot(
         #     self.search_depth, self.board_state, True)
-        best_move = self.minimaxRoot(
-            self.search_depth, self.board_state, not self.algo_obj.original_player)
+        # print(self.algo_obj.original_player)
+        if self.game_number % 2 == 0:
+            best_move = self.minimaxRoot(
+                self.search_depth, self.board_state, not self.algo_obj.original_player)
+        else:
+            best_move = self.minimaxRoot(
+                self.search_depth, self.board_state, self.algo_obj.original_player)
         # best_move = self.minimaxRoot(
         #     self.search_depth, self.board_state, True)
         # print(datetime.datetime.utcnow())
@@ -394,9 +403,9 @@ class Playout(object):
         # if tablebase_end_game:
         #     return tablebase_end_game
         print(self.moves_played)
-        if self.moves_played == 50:
+        if self.moves_played == 20:
             info = self.evaluation_engine.analyse(
-                self.board_state, chess.engine.Limit(depth=3))
+                self.board_state, chess.engine.Limit(depth=5))
             stat_eval = StaticEval.evaluate_board(self.board_state)
             if self.algo_obj.original_player:
                 self.last_game_status = 'Inconclusive (Stockfish: ' + \
@@ -412,11 +421,11 @@ class Playout(object):
 
     def iterate(self):
         for each_game in range(self.num_games):
-            game_number = each_game + 1
+            self.game_number = each_game + 1
             end = False
             self.board_state = self.starting_board_state.copy()
             self.moves_played = 0
-            if game_number % 2 == 0:
+            if self.game_number % 2 == 0:
                 # alternate starting players
                 self.algo_obj.original_player = False
                 self.flip_board = True
@@ -429,14 +438,14 @@ class Playout(object):
                     self.opponent_algo.original_player = False
 
             while(not(end)):
-                end = self.run_algo_playout(game_number)
+                end = self.run_algo_playout(self.game_number)
                 print('Wins: ' + str(self.win_count))
                 print('Loses: ' + str(self.lose_count))
                 print('\n')
 
             globals()['scoreboard'].text(
                 'Wins: ' + str(self.win_count) + '\nLosses: ' + str(self.lose_count) + '\nDraws: ' + str(self.draw_count))
-            st.text('Game ' + str(game_number) +
+            st.text('Game ' + str(self.game_number) +
                     ' - ' + str(self.last_game_status) + ' - ' + str(self.moves_played) + ' Moves')
         try:
             self.opponent_engine.quit()
