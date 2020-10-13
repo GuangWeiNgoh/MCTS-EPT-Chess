@@ -328,7 +328,7 @@ ept_3_root_c_value = st.sidebar.number_input(
 ept_3_c_value = st.sidebar.number_input(
     'UCT exploration constant', 0.8, key='ept_3_c_value')  # 0.8
 ept_3_alpha = st.sidebar.number_input(
-    'Heuristic influence (α)', 0.5, key='ept_3_alpha')
+    'Heuristic influence (α)', 0.7, key='ept_3_alpha')
 terminal_depth_3 = st.sidebar.slider(
     'Playout terminal depth', 0, 50, 3, key='ept_3_depth')
 
@@ -342,15 +342,15 @@ terminal_depth_2 = st.sidebar.slider(
 
 st.sidebar.subheader("MCTS-EPT")
 ept_root_c_value = st.sidebar.number_input(
-    'UCT exploration constant @ root', 3.0, key='ept_root_c_value')
+    'UCT exploration constant @ root', 0.8, key='ept_root_c_value')
 ept_c_value = st.sidebar.number_input(
-    'UCT exploration constant', 1.4, key='ept_c_value')
+    'UCT exploration constant', 0.8, key='ept_c_value')
 terminal_depth = st.sidebar.slider(
     'Playout terminal depth', 0, 50, 3, key='ept_depth')
 
 st.sidebar.subheader("MCTS")
 c_value = st.sidebar.number_input(
-    'UCT exploration constant', 1.4, key='c_value')
+    'UCT exploration constant', 0.8, key='c_value')
 max_moves = st.sidebar.slider(
     'Maximum moves per simulation (MCTS)', 0, 1000, 500)
 
@@ -433,7 +433,7 @@ elif opponent_selection == 'Clarabit (2058 Elo)':
     opponent_alpha_value = 0
 elif opponent_selection == 'Minimax with Alpha-Beta Pruning':
     opponent_depth = st.slider(
-        'Minimax search depth', 0, 20, 4, key='minimax_depth')
+        'Minimax search depth', 0, 20, 2, key='minimax_depth')
     opponent_calc_time = 0
     opponent_ept_root_c_value = 0
     opponent_ept_c_value = 0
@@ -460,7 +460,7 @@ elif opponent_selection == 'MCTS-EPT (CP Normalized)':
     opponent_calc_time = st.number_input(
         'Calculation time (seconds)', 5, key='opponent_calc_time')
     opponent_depth = st.slider(
-        'MCTS-EPT terminal depth', 0, 20, 3, key='opponent_ept_depth')
+        'MCTS-EPT terminal depth', 0, 20, 5, key='opponent_ept_depth')
     opponent_ept_root_c_value = st.number_input(
         'UCT exploration constant @ root', 0.8, key='opponent_ept_root_c_value')
     opponent_ept_c_value = st.number_input(
@@ -476,7 +476,7 @@ elif opponent_selection == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups
     opponent_ept_c_value = st.number_input(
         'UCT exploration constant', 0.8, key='opponent_ept_c_value')
     opponent_alpha_value = st.number_input(
-        'Heuristic influence (α)', 0.5, key='opponent_alpha_value')
+        'Heuristic influence (α)', 0.7, key='opponent_alpha_value')
 elif opponent_selection == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups & Negation':
     opponent_calc_time = st.number_input(
         'Calculation time (seconds)', 5, key='opponent_calc_time')
@@ -487,7 +487,7 @@ elif opponent_selection == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups
     opponent_ept_c_value = st.number_input(
         'UCT exploration constant', 0.8, key='opponent_ept_c_value')
     opponent_alpha_value = st.number_input(
-        'Heuristic influence (α)', 0.5, key='opponent_alpha_value')
+        'Heuristic influence (α)', 0.7, key='opponent_alpha_value')
 elif opponent_selection == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups, Negation & Solver':
     opponent_calc_time = st.number_input(
         'Calculation time (seconds)', 5, key='opponent_calc_time')
@@ -498,7 +498,7 @@ elif opponent_selection == 'MCTS-EPT (CP Normalized) w/ Implicit Minimax Backups
     opponent_ept_c_value = st.number_input(
         'UCT exploration constant', 0.8, key='opponent_ept_c_value')
     opponent_alpha_value = st.number_input(
-        'Heuristic influence (α)', 0.5, key='opponent_alpha_value')
+        'Heuristic influence (α)', 0.7, key='opponent_alpha_value')
 
 
 if st.button('Start playout'):
