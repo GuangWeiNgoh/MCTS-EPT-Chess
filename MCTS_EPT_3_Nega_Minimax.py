@@ -236,7 +236,6 @@ class MCTSEPT3(object):
             original_state = board_state.copy()
             # original_state.push_san(move)
             original_state.push(move)
-            # evaluation = self.stockfish_expan_eval(original_state, node)
             stat_eval = StaticEval.evaluate_board(original_state)
             if self.original_player:  # if player is white
                 if node.depth % 2 == 0:  # expand children of even depth node in white eval
@@ -287,203 +286,55 @@ class MCTSEPT3(object):
 
     # **********************************************************************************************************************
 
-    def stockfish_sim_eval(self, board_state, node):
+    def stockfish_eval(self, board_state):
         # info = self.engine.analyse(board_state, chess.engine.Limit(time=0.01))
         info = self.engine.analyse(board_state, chess.engine.Limit(depth=3))
         if self.original_player:
             try:
-                if node.depth % 2 == 0:
-                    pov_score = int(info["score"].black().__str__())
-                    if pov_score > 5000:  # set cp limit to 5000 so that mate score takes precedence
-                        pov_score = 5000
-                    score = 1 / (1 + (10 ** -(pov_score / 400)))
-                    return score  # returns 1 if pov_score > +6382
-                else:
-                    pov_score = int(info["score"].white().__str__())
-                    if pov_score > 5000:  # set cp limit to 5000 so that mate score takes precedence
-                        pov_score = 5000
-                    score = 1 / (1 + (10 ** -(pov_score / 400)))
-                    return score  # returns 1 if pov_score > +6382
+                pov_score = int(info["score"].white().__str__())
+                if pov_score > 5000:  # set cp limit to 5000 so that mate score takes precedence
+                    pov_score = 5000
+                score = 1 / (1 + (10 ** -(pov_score / 400)))
+                return score  # returns 1 if pov_score > +6382
             except:
-                if node.depth % 2 == 0:
-                    pov_score = info["score"].black().__str__()
-                    if pov_score[1] == '+':  # mate in x
-                        # x * 100 to make a difference when normalizing
-                        mate_in = int(pov_score[2:]) * 100
-                        # return value close to 1 depending on x
-                        score = 1 / (1 + (10 ** -((6382-mate_in) / 400)))
-                        return score
-                        # return 1.0
-                    else:
-                        # x * 100 to make a difference when normalizing
-                        mate_in = int(pov_score[2:]) * 100
-                        # return value close to 1 depending on x
-                        score = 1 / (1 + (10 ** -((-6382+mate_in) / 400)))
-                        return score
-                        # return 0.0
+                pov_score = info["score"].white().__str__()
+                if pov_score[1] == '+':  # mate in x
+                    # x * 100 to make a difference when normalizing
+                    mate_in = int(pov_score[2:]) * 100
+                    # return value close to 1 depending on x
+                    score = 1 / (1 + (10 ** -((6382-mate_in) / 400)))
+                    return score
+                    # return 1.0
                 else:
-                    pov_score = info["score"].white().__str__()
-                    if pov_score[1] == '+':  # mate in x
-                        # x * 100 to make a difference when normalizing
-                        mate_in = int(pov_score[2:]) * 100
-                        # return value close to 1 depending on x
-                        score = 1 / (1 + (10 ** -((6382-mate_in) / 400)))
-                        return score
-                        # return 1.0
-                    else:
-                        # x * 100 to make a difference when normalizing
-                        mate_in = int(pov_score[2:]) * 100
-                        # return value close to 1 depending on x
-                        score = 1 / (1 + (10 ** -((-6382+mate_in) / 400)))
-                        return score
-                        # return 0.0
+                    # x * 100 to make a difference when normalizing
+                    mate_in = int(pov_score[2:]) * 100
+                    # return value close to 1 depending on x
+                    score = 1 / (1 + (10 ** -((-6382+mate_in) / 400)))
+                    return score
+                    # return 0.0
         else:
             try:
-                if node.depth % 2 == 0:
-                    pov_score = int(info["score"].white().__str__())
-                    if pov_score > 5000:  # set cp limit to 5000 so that mate score takes precedence
-                        pov_score = 5000
-                    score = 1 / (1 + (10 ** -(pov_score / 400)))
-                    return score  # returns 1 if pov_score > +6382
-                else:
-                    pov_score = int(info["score"].black().__str__())
-                    if pov_score > 5000:  # set cp limit to 5000 so that mate score takes precedence
-                        pov_score = 5000
-                    score = 1 / (1 + (10 ** -(pov_score / 400)))
-                    return score  # returns 1 if pov_score > +6382
+                pov_score = int(info["score"].black().__str__())
+                if pov_score > 5000:  # set cp limit to 5000 so that mate score takes precedence
+                    pov_score = 5000
+                score = 1 / (1 + (10 ** -(pov_score / 400)))
+                return score  # returns 1 if pov_score > +6382
             except:
-                if node.depth % 2 == 0:
-                    pov_score = info["score"].white().__str__()
-                    if pov_score[1] == '+':  # mate in x
-                        # x * 100 to make a difference when normalizing
-                        mate_in = int(pov_score[2:]) * 100
-                        # return value close to 1 depending on x
-                        score = 1 / (1 + (10 ** -((6382-mate_in) / 400)))
-                        return score
-                        # return 1.0
-                    else:
-                        # x * 100 to make a difference when normalizing
-                        mate_in = int(pov_score[2:]) * 100
-                        # return value close to 1 depending on x
-                        score = 1 / (1 + (10 ** -((-6382+mate_in) / 400)))
-                        return score
-                        # return 0.0
+                pov_score = info["score"].black().__str__()
+                if pov_score[1] == '+':  # mate in x
+                    # x * 100 to make a difference when normalizing
+                    mate_in = int(pov_score[2:]) * 100
+                    # return value close to 1 depending on x
+                    score = 1 / (1 + (10 ** -((6382-mate_in) / 400)))
+                    return score
+                    # return 1.0
                 else:
-                    pov_score = info["score"].black().__str__()
-                    if pov_score[1] == '+':  # mate in x
-                        # x * 100 to make a difference when normalizing
-                        mate_in = int(pov_score[2:]) * 100
-                        # return value close to 1 depending on x
-                        score = 1 / (1 + (10 ** -((6382-mate_in) / 400)))
-                        return score
-                        # return 1.0
-                    else:
-                        # x * 100 to make a difference when normalizing
-                        mate_in = int(pov_score[2:]) * 100
-                        # return value close to 1 depending on x
-                        score = 1 / (1 + (10 ** -((-6382+mate_in) / 400)))
-                        return score
-                        # return 0.0
-
-    # **********************************************************************************************************************
-
-    def stockfish_expan_eval(self, board_state, node):
-        # info = self.engine.analyse(board_state, chess.engine.Limit(time=0.01))
-        info = self.engine.analyse(board_state, chess.engine.Limit(depth=3))
-        if self.original_player:
-            try:
-                if node.depth % 2 == 0:
-                    pov_score = int(info["score"].white().__str__())
-                    if pov_score > 5000:  # set cp limit to 5000 so that mate score takes precedence
-                        pov_score = 5000
-                    score = 1 / (1 + (10 ** -(pov_score / 400)))
-                    return score  # returns 1 if pov_score > +6382
-                else:
-                    pov_score = int(info["score"].black().__str__())
-                    if pov_score > 5000:  # set cp limit to 5000 so that mate score takes precedence
-                        pov_score = 5000
-                    score = 1 / (1 + (10 ** -(pov_score / 400)))
-                    return score  # returns 1 if pov_score > +6382
-            except:
-                if node.depth % 2 == 0:
-                    pov_score = info["score"].white().__str__()
-                    if pov_score[1] == '+':  # mate in x
-                        # x * 100 to make a difference when normalizing
-                        mate_in = int(pov_score[2:]) * 100
-                        # return value close to 1 depending on x
-                        score = 1 / (1 + (10 ** -((6382-mate_in) / 400)))
-                        return score
-                        # return 1.0
-                    else:
-                        # x * 100 to make a difference when normalizing
-                        mate_in = int(pov_score[2:]) * 100
-                        # return value close to 1 depending on x
-                        score = 1 / (1 + (10 ** -((-6382+mate_in) / 400)))
-                        return score
-                        # return 0.0
-                else:
-                    pov_score = info["score"].black().__str__()
-                    if pov_score[1] == '+':  # mate in x
-                        # x * 100 to make a difference when normalizing
-                        mate_in = int(pov_score[2:]) * 100
-                        # return value close to 1 depending on x
-                        score = 1 / (1 + (10 ** -((6382-mate_in) / 400)))
-                        return score
-                        # return 1.0
-                    else:
-                        # x * 100 to make a difference when normalizing
-                        mate_in = int(pov_score[2:]) * 100
-                        # return value close to 1 depending on x
-                        score = 1 / (1 + (10 ** -((-6382+mate_in) / 400)))
-                        return score
-                        # return 0.0
-        else:
-            try:
-                if node.depth % 2 == 0:
-                    pov_score = int(info["score"].black().__str__())
-                    if pov_score > 5000:  # set cp limit to 5000 so that mate score takes precedence
-                        pov_score = 5000
-                    score = 1 / (1 + (10 ** -(pov_score / 400)))
-                    return score  # returns 1 if pov_score > +6382
-                else:
-                    pov_score = int(info["score"].white().__str__())
-                    if pov_score > 5000:  # set cp limit to 5000 so that mate score takes precedence
-                        pov_score = 5000
-                    score = 1 / (1 + (10 ** -(pov_score / 400)))
-                    return score  # returns 1 if pov_score > +6382
-            except:
-                if node.depth % 2 == 0:
-                    pov_score = info["score"].black().__str__()
-                    if pov_score[1] == '+':  # mate in x
-                        # x * 100 to make a difference when normalizing
-                        mate_in = int(pov_score[2:]) * 100
-                        # return value close to 1 depending on x
-                        score = 1 / (1 + (10 ** -((6382-mate_in) / 400)))
-                        return score
-                        # return 1.0
-                    else:
-                        # x * 100 to make a difference when normalizing
-                        mate_in = int(pov_score[2:]) * 100
-                        # return value close to 1 depending on x
-                        score = 1 / (1 + (10 ** -((-6382+mate_in) / 400)))
-                        return score
-                        # return 0.0
-                else:
-                    pov_score = info["score"].white().__str__()
-                    if pov_score[1] == '+':  # mate in x
-                        # x * 100 to make a difference when normalizing
-                        mate_in = int(pov_score[2:]) * 100
-                        # return value close to 1 depending on x
-                        score = 1 / (1 + (10 ** -((6382-mate_in) / 400)))
-                        return score
-                        # return 1.0
-                    else:
-                        # x * 100 to make a difference when normalizing
-                        mate_in = int(pov_score[2:]) * 100
-                        # return value close to 1 depending on x
-                        score = 1 / (1 + (10 ** -((-6382+mate_in) / 400)))
-                        return score
-                        # return 0.0
+                    # x * 100 to make a difference when normalizing
+                    mate_in = int(pov_score[2:]) * 100
+                    # return value close to 1 depending on x
+                    score = 1 / (1 + (10 ** -((-6382+mate_in) / 400)))
+                    return score
+                    # return 0.0
 
     # **********************************************************************************************************************
 
@@ -525,85 +376,24 @@ class MCTSEPT3(object):
         # convert fen string back to board object
         board_state = chess.Board(node.state)
 
-        # directed playout with move ordering
-        # if self.lock_depth == False:
-        #     while(node.children):
-        #         # print(len(node.children))
-        #         node = node.children[random.randint(0, len(node.children)-1)]
-        #         # print(node.weight)
-        #         # print('Directed')
-        #         board_state.push_san(node.weight)
-        #         node.sims += 1
-        #         if board_state.is_game_over():
-        #             if board_state.is_checkmate():  # assign winner only if checkmate
-        #                 if board_state.turn == self.original_player:
-        #                     return 0.0
-        #                 else:
-        #                     return 1.0
-        #             return 0.0  # is draw considered a loss for mcts-ept?
+        # minimax playout
+        # set maximizing to True if on original player depth
+        if node.depth % 2 == 0:
+            is_maximizing = False
+        else:
+            is_maximizing = True
+        # call minimax playout
+        minimax_value = self.minimax(2, board_state, -math.inf,
+                                     math.inf, is_maximizing)
 
-        # random playout
-        for move in range(self.terminal_depth):
-            # if node.children:
-            #     # print(len(node.children))
-            #     node = node.children[random.randint(0, len(node.children)-1)]
-            #     # print(node.weight)
-            #     # print('Directed')
-            #     board_state.push_san(node.weight)
-            # else:
-            #     # print('Random')
-            #     board_state.push(random.choice(list(board_state.legal_moves)))
-            board_state.push(random.choice(list(board_state.legal_moves)))
-            if board_state.is_game_over():
-                if board_state.is_checkmate():  # assign winner only if checkmate
-                    if board_state.turn == self.original_player:  # original player lost
-                        if node.depth % 2 == 0:  # return win at opponent depth
-                            return 1.0
-                        else:  # return loss at player depth
-                            return 0.0
-                    else:  # original player won
-                        # return 1.0
-                        if node.depth % 2 == 0:  # return loss at opponent depth
-                            return 0.0
-                        else:  # return win at player depth
-                            return 1.0
-                return 0.0  # is draw considered a loss for mcts-ept?
+        # score = self.stockfish_eval(board_state)
 
-        # # minimax playout
-        # # set maximizing to True if on original player depth
-        # if node.depth % 2 == 0:
-        #     is_maximizing = False
-        # else:
-        #     is_maximizing = True
-        # # call minimax playout
-        # minimax_value = self.minimax(2, board_state, -math.inf,
-        #                              math.inf, is_maximizing)
-
-        # score = self.stockfish_sim_eval(board_state, node)
-
-        stat_eval = StaticEval.evaluate_board(
-            board_state)  # use static eval otherwise
-        if self.original_player:  # if player is white
-            if node.depth % 2 == 0:  # use black eval at opponent depth
-                score = 1 / (1 + (10 ** -(-stat_eval / 400)))
-            else:
-                score = 1 / (1 + (10 ** -(stat_eval / 400)))
-        else:  # if player is black
-            if node.depth % 2 == 0:  # use white eval at opponent depth
-                score = 1 / (1 + (10 ** -(stat_eval / 400)))
-            else:
-                score = 1 / (1 + (10 ** -(-stat_eval / 400)))
-
-        # if self.lock_depth == True:
-        #     # use stockfish when mate score found
-        #     score = self.stockfish_eval(board_state)
-        # else:
-        #     stat_eval = StaticEval.evaluate_board(
-        #         board_state)  # use static eval otherwise
-        #     if self.original_player:
-        #         score = 1 / (1 + (10 ** -(stat_eval / 400)))
-        #     else:
-        #         score = 1 / (1 + (10 ** -((-stat_eval) / 400)))
+        # stat_eval = StaticEval.evaluate_board(
+        #     board_state)  # use static eval otherwise
+        if self.original_player:
+            score = 1 / (1 + (10 ** -(minimax_value / 400)))
+        else:
+            score = 1 / (1 + (10 ** -((-minimax_value) / 400)))
 
         return score
 
@@ -717,10 +507,10 @@ class MCTSEPT3(object):
         #         globals()[str(self.starting_board_state.fen())+str(0)])
 
         # generate legal moves for starting state
-        self.run_expansion(
-            globals()[str(self.starting_board_state.fen())+str(0)])
-        # self.ordered_expansion(
-        #     globals()[str(self.starting_board_state.fen())+str(0)], 8)
+        # self.run_expansion(
+        #     globals()[str(self.starting_board_state.fen())+str(0)])
+        self.ordered_expansion(
+            globals()[str(self.starting_board_state.fen())+str(0)], 8)
 
         # lock depth to follow mate score
         # mate_info = self.engine.analyse(

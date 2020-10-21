@@ -507,7 +507,7 @@ if st.button('Start playout'):
     # st.text('Change depth to time?')
     st.subheader(str(num_games)+' Game Playout')
     st.text(str(algo) + ' vs ' + str(opponent_selection) +
-            ' (Time ' + str(opponent_depth) + ')')
+            ' (Terminal Depth ' + str(opponent_depth) + ')')
 
     if algo == 'MCTS':
         algo = MCTS(board, time=calc_time,
