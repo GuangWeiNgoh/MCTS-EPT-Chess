@@ -174,7 +174,7 @@ def show_stats(best_move, weight_list, winsim_list, score_list, total_wins, tota
     st.dataframe(move_stats_list.style.highlight_max(axis=0), 1000, 1000)
     # st.write(move_stats_list, use_container_width=True)
 
-    st.header('Monte Carlo Tree JSON')
+    # st.header('Monte Carlo Tree JSON')
     # with open('tree.json') as json_file:
     #     data = json.load(json_file)
     # data_json = json.dumps(data)
@@ -506,6 +506,7 @@ if st.button('Start playout'):
     # st.text('Improve SVG')
     # st.text('Change depth to time?')
     st.subheader(str(num_games)+' Game Playout')
+    # st.text(str(algo) + ' vs ' + str(opponent_selection))
     st.text(str(algo) + ' vs ' + str(opponent_selection) +
             ' (Terminal Depth ' + str(opponent_depth) + ')')
 
